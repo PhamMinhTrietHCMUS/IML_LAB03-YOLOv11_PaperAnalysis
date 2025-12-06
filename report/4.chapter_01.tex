@@ -7,15 +7,31 @@ Trải qua nhiều phiên bản cải tiến, từ các thế hệ ổn định 
 
 Tuy nhiên, việc hiểu rõ cơ chế hoạt động bên trong của các cải tiến này, đặc biệt là sự kết hợp giữa mạng nơ-ron tích chập (CNN) truyền thống và cơ chế chú ý (Attention Mechanism), vẫn là một thách thức. Trong khi các mô hình Transformer \cite{vaswani2017attention} đang dần phổ biến, việc tích hợp chúng vào các mô hình thời gian thực như YOLO đòi hỏi sự cân nhắc kỹ lưỡng về chi phí tính toán. Do đó, nhu cầu phân tích sâu về kiến trúc YOLOv11 để đánh giá hiệu quả thực tế là vô cùng cấp thiết.
 
-\section{Mục tiêu nghiên cứu và ý nghĩa}
-Mục đích của nghiên cứu này là phân tích toàn diện kiến trúc của YOLOv11, làm sáng tỏ các cơ chế tối ưu hóa giúp mô hình đạt được hiệu suất cao với tài nguyên hạn chế. Cụ thể, nghiên cứu tập trung vào:
+\section{Lựa chọn Chủ đề và Tài liệu Nghiên cứu}
+Đề tài này tập trung vào lĩnh vực \textbf{Thị giác Máy tính (Computer Vision)}, cụ thể là bài toán \textbf{Phát hiện Đối tượng Thời gian Thực (Real-time Object Detection)} trong Học Máy. Đây là một trong những hướng nghiên cứu quan trọng nhất của trí tuệ nhân tạo hiện đại, có ứng dụng rộng rãi trong xe tự hành, giám sát an ninh, y tế, và robot tự động.
+
+\subsection{Tài liệu Nghiên cứu Chính}
+Nghiên cứu này phân tích kiến trúc \textbf{Ultralytics YOLOv11} \cite{ultralytics2024yolov11}, phiên bản mới nhất trong dòng mô hình YOLO được phát hành bởi Ultralytics vào năm 2024. YOLOv11 đại diện cho sự tiến hóa mới nhất của kiến trúc one-stage detector, kế thừa từ các phiên bản tiền nhiệm đã được công bố tại các hội nghị hàng đầu:
+
 \begin{itemize}
-    \item Phân tích cấu trúc ba thành phần: Backbone, Neck và Head.
-    \item Giải thích cơ chế hoạt động của khối tinh chỉnh đặc trưng C3K2 và khối chú ý không gian C2PSA.
-    \item Đánh giá tiềm năng ứng dụng của mô hình trong các bài toán thực tế (như nhận diện cử chỉ tay).
+    \item \textbf{YOLO (v1-v3):} Được công bố tại IEEE CVPR \cite{redmon2016yolo}, một hội nghị xếp hạng A* theo CORE Rankings.
+    \item \textbf{YOLOv9:} Kiến trúc GELAN và PGI được công bố trên arXiv \cite{wang2024yolov9}.
+    \item \textbf{Các kỹ thuật nền tảng:} CSPNet (CVPR 2020) \cite{wang2020cspnet}, PANet (CVPR 2018) \cite{liu2018panet}, Attention Mechanism (NeurIPS 2017) \cite{vaswani2017attention}.
 \end{itemize}
 
-Ý nghĩa của công trình nằm ở việc cung cấp một cái nhìn sâu sắc về xu hướng thiết kế mạng nơ-ron hiện đại: chuyển dịch từ việc tăng độ sâu mạng sang tối ưu hóa chất lượng đặc trưng thông qua cơ chế chú ý.
+\section{Mục tiêu nghiên cứu và ý nghĩa}
+YOLOv11 được chọn làm đối tượng nghiên cứu vì đây là phiên bản mới nhất (2024) giới thiệu các cải tiến kiến trúc đột phá như khối C3K2 và cơ chế chú ý C2PSA, thể hiện xu hướng kết hợp CNN và Transformer trong thiết kế mạng nơ-ron hiện đại. Hơn nữa, YOLOv11 được tối ưu hóa cho triển khai thực tế trên thiết bị biên, đồng thời framework Ultralytics cung cấp implementation mã nguồn mở hoàn chỉnh, tạo điều kiện thuận lợi cho việc thực nghiệm và tái tạo kết quả.
+
+Mục đích của nghiên cứu này là phân tích toàn diện kiến trúc YOLOv11, làm sáng tỏ các cơ chế tối ưu hóa giúp mô hình đạt được hiệu suất cao với tài nguyên hạn chế. Cụ thể, nghiên cứu tập trung vào các mục tiêu sau:
+
+\begin{itemize}
+    \item \textbf{Phân tích kiến trúc:} Mô tả chi tiết cấu trúc ba thành phần Backbone, Neck và Head, làm rõ vai trò của từng khối trong luồng xử lý đặc trưng.
+    \item \textbf{Nghiên cứu cơ chế:} Giải thích toán học về hoạt động của khối tinh chỉnh đặc trưng C3K2 và khối chú ý không gian C2PSA.
+    \item \textbf{Đánh giá thực nghiệm:} So sánh hiệu suất của YOLOv11 với các thế hệ tiền nhiệm (YOLOv8, YOLOv9) trên bộ dữ liệu Rock-Paper-Scissors.
+    \item \textbf{Ứng dụng thực tế:} Triển khai ứng dụng phát hiện đối tượng thời gian thực để kiểm chứng khả năng áp dụng của mô hình.
+\end{itemize}
+
+Ý nghĩa của công trình nằm ở việc cung cấp một cái nhìn sâu sắc về xu hướng thiết kế mạng nơ-ron hiện đại: chuyển dịch từ việc tăng độ sâu mạng sang tối ưu hóa chất lượng đặc trưng thông qua cơ chế chú ý, đồng thời cung cấp cơ sở lý thuyết vững chắc cho việc triển khai mô hình trên các thiết bị phần cứng thế hệ mới.
 
 \section{Tổng quan đóng góp}
 Báo cáo này mang lại những đóng góp chính sau:
@@ -29,9 +45,9 @@ Báo cáo này mang lại những đóng góp chính sau:
 \section{Cấu trúc báo cáo}
 Báo cáo được tổ chức thành 6 chương như sau:
 \begin{itemize}
-  \item \textbf{Chapter 2: Các công trình liên quan.} Tổng quan về sự tiến hóa của dòng mô hình YOLO và các kỹ thuật nền tảng (CSPNet, PANet).
-  \item \textbf{Chapter 3: Kiến thức nền tảng.} Trình bày các khái niệm toán học cốt lõi như Tích chập, Cơ chế Chú ý (Attention) và các hàm mất mát.
-  \item \textbf{Chapter 4: Phương pháp nghiên cứu.} Đi sâu vào mô hình hóa toán học kiến trúc YOLOv11, phân tích chi tiết các khối C3K2 và C2PSA.
-  \item \textbf{Chapter 5: Thiết kế và Kịch bản Thực nghiệm.} Trình bày thiết lập môi trường, dữ liệu và chiến lược huấn luyện dự kiến.
-  \item \textbf{Chapter 6: Kết luận và Định hướng phát triển.} Tóm tắt các phát hiện lý thuyết và đề xuất kế hoạch triển khai thực tế trong tương lai.
+  \item \textbf{Chương 2: Các công trình liên quan.} Tổng quan về sự tiến hóa của dòng mô hình YOLO, so sánh với các cách tiếp cận hiện có và làm rõ khoảng trống nghiên cứu mà YOLOv11 giải quyết.
+  \item \textbf{Chương 3: Kiến thức nền tảng.} Trình bày các khái niệm toán học cốt lõi bao gồm Mạng Nơ-ron Tích chập (CNN), Cơ chế Chú ý (Attention Mechanism), các hàm mất mát (CIoU, DFL), và kỹ thuật Spatial Pyramid Pooling.
+  \item \textbf{Chương 4: Phương pháp nghiên cứu.} Đi sâu vào mô hình hóa toán học kiến trúc YOLOv11, phân tích chi tiết các khối C3K2, C2PSA và các hàm mất mát được sử dụng trong quá trình huấn luyện.
+  \item \textbf{Chương 5: Thực nghiệm và Đánh giá.} Trình bày bộ dữ liệu Rock-Paper-Scissors, môi trường thực nghiệm, kết quả so sánh giữa YOLOv8s, YOLOv9s và YOLOv11s, cùng với phân tích chi tiết các chỉ số đánh giá.
+  \item \textbf{Chương 6: Kết luận và Định hướng phát triển.} Tổng kết các phát hiện chính, đánh giá điểm mạnh và hạn chế của YOLOv11, đề xuất hướng nghiên cứu và phát triển tiếp theo.
 \end{itemize}

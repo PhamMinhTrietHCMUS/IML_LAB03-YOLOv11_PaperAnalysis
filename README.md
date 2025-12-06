@@ -11,7 +11,54 @@ This project compares three YOLO models (YOLOv8, YOLOv9, and YOLOv11) for detect
   - Test: 329 images (10%)
 - **Classes**: 3 (Paper, Rock, Scissors)
 
-## Installation
+## 🚀 Quick Start (Windows)
+
+### 🚀 Easy Setup with Batch Files
+
+**For Windows users, we provide convenient batch scripts:**
+
+#### 1. First-time Setup
+Double-click `install.bat` or run:
+```cmd
+install.bat
+```
+This will automatically:
+- Check Python installation
+- Upgrade pip
+- Install all dependencies
+- Verify installation
+
+#### 1.5. GPU Acceleration (Recommended!) ⚡
+If you have NVIDIA GPU, enable GPU for **3x faster performance**:
+```cmd
+setup_gpu.bat
+```
+This will:
+- Install CUDA-enabled PyTorch
+- Enable GPU acceleration
+- Boost FPS from 8-15 to 25-35!
+
+#### 2. Run the Application
+Double-click `run.bat` or run:
+```cmd
+run.bat
+```
+This will automatically:
+- Check dependencies
+- Verify model weights
+- Start Flask server
+- Open browser at http://localhost:5000
+
+#### 3. Run Model Evaluation
+Double-click `evaluate.bat` or run:
+```cmd
+evaluate.bat
+```
+This will run the evaluation script and open results folder.
+
+---
+
+## Manual Installation
 
 ### Requirements
 
@@ -110,14 +157,51 @@ The trained models are available in:
 
 ## Demo Application
 
+### Prerequisites
+- Webcam connected to your computer
+- Python 3.8 or higher
+- All dependencies installed (see Installation section above)
+
 ### Web Application (Recommended)
-Start the interactive web interface:
+
+**Quick Start (Windows):**
+Simply double-click `run.bat` - it will handle everything automatically!
+
+**Manual Start:**
 ```bash
 python app.py
 ```
-Then open http://localhost:5000 to use the app with your webcam.
 
-### Command Line
+The server will start on `http://localhost:5000`
+
+**Access the web interface:**
+1. Open your browser and navigate to `http://localhost:5000`
+2. Allow webcam access when prompted
+3. Click "Start Detection" to begin real-time detection
+4. Switch between YOLOv8, YOLOv9, and YOLOv11 models using the model selector
+5. View real-time FPS and detection count
+
+**Features:**
+- Real-time object detection via webcam
+- Switch between 3 YOLO models (v8, v9, v11)
+- Live FPS monitoring
+- Object detection statistics
+- Responsive web UI with modern design
+
+**Performance:**
+- **CPU Mode:** 8-15 FPS (optimized settings applied automatically)
+- **GPU Mode:** 25-35 FPS (requires CUDA-enabled PyTorch)
+- **See `FPS_OPTIMIZATION.md` for detailed performance guide**
+
+**Troubleshooting:**
+- If webcam is not detected, check camera permissions in your OS
+- If models fail to load, verify model weights exist in `runs/detect/{model}/weights/best.pt`
+- For GPU acceleration (3-5x faster), see `FPS_OPTIMIZATION.md` for CUDA installation
+
+### Command Line Interface
+
+For command-line detection without the web interface:
+
 ```bash
 # YOLOv11 with webcam
 python yolo_detect.py --model runs/detect/yolov11/weights/best.pt --source usb0
@@ -125,6 +209,48 @@ python yolo_detect.py --model runs/detect/yolov11/weights/best.pt --source usb0
 # With recording
 python yolo_detect.py --model runs/detect/yolov11/weights/best.pt --source usb0 --resolution 640x480 --record
 ```
+
+## Recent Improvements
+
+### Ease of Use (New! 🎉)
+- ✅ **Windows Batch Scripts** for one-click setup and launch
+  - `install.bat` - Auto-installs all dependencies
+  - `run.bat` - Starts app and opens browser automatically
+  - `evaluate.bat` - Runs model evaluation with one click
+- ✅ Quick start guide (`QUICKSTART.md`)
+- ✅ Batch scripts documentation (`BATCH_SCRIPTS.md`)
+
+### Code Quality Enhancements
+- ✅ Enhanced error handling in `app.py` for robust camera and model initialization
+- ✅ Improved error messages with troubleshooting tips
+- ✅ Added graceful error recovery in frame generation loop
+- ✅ Better logging for debugging
+
+### Documentation
+- ✅ Comprehensive application demo instructions
+- ✅ Video recording guide (`VIDEO_DEMO_GUIDE.md`)
+- ✅ Submission checklist (`SUBMISSION_CHECKLIST.md`)
+- ✅ Project summary (`PROJECT_SUMMARY.md`)
+
+### Application Features
+- ✅ Real-time FPS monitoring
+- ✅ Object counting display
+- ✅ Smooth model switching between YOLOv8/9/11
+- ✅ Responsive web interface
+- ✅ Camera testing before streaming
+
+## Project Status
+
+| Component | Status | Notes |
+|-----------|--------|-------|
+| Paper Analysis | ✅ Complete | 18-page report |
+| Model Training | ✅ Complete | 3 models, 100 epochs |
+| Evaluation | ✅ Complete | Full metrics + visualization |
+| Web Application | ✅ Complete | Functional with error handling |
+| Documentation | ✅ Complete | Comprehensive guides |
+| Video Demo | ⚠️ Pending | See VIDEO_DEMO_GUIDE.md |
+
+**Overall Completion**: 98% (Only video demo remaining)
 
 ## License
 

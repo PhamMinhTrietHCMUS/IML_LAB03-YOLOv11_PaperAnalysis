@@ -1,0 +1,37 @@
+\chapter{Giới thiệu}
+
+\section{Bối cảnh và động lực vấn đề}
+Trong lĩnh vực thị giác máy tính (Computer Vision), bài toán phát hiện đối tượng trong thời gian thực đóng vai trò cốt lõi. Dòng mô hình YOLO (You Only Look Once), được giới thiệu lần đầu bởi Redmon et al. \cite{redmon2016yolo}, đã tạo ra một cuộc cách mạng nhờ khả năng cân bằng vượt trội giữa tốc độ và độ chính xác.
+
+Trải qua nhiều phiên bản cải tiến, từ các thế hệ ổn định như YOLOv8 \cite{jocher2023yolov8} đến các kiến trúc tối ưu gradient như YOLOv9 \cite{wang2024yolov9}, mỗi phiên bản đều mang lại những bước tiến đáng kể. YOLOv11, được Ultralytics phát hành vào cuối năm 2024 \cite{ultralytics2024yolov11}, tiếp tục kế thừa những thành công đó và giới thiệu các cải tiến kiến trúc đột phá nhằm tối ưu hóa hiệu suất trên thiết bị biên.
+
+Tuy nhiên, việc hiểu rõ cơ chế hoạt động bên trong của các cải tiến này, đặc biệt là sự kết hợp giữa mạng nơ-ron tích chập (CNN) truyền thống và cơ chế chú ý (Attention Mechanism), vẫn là một thách thức. Trong khi các mô hình Transformer \cite{vaswani2017attention} đang dần phổ biến, việc tích hợp chúng vào các mô hình thời gian thực như YOLO đòi hỏi sự cân nhắc kỹ lưỡng về chi phí tính toán. Do đó, nhu cầu phân tích sâu về kiến trúc YOLOv11 để đánh giá hiệu quả thực tế là vô cùng cấp thiết.
+
+\section{Mục tiêu nghiên cứu và ý nghĩa}
+Mục đích của nghiên cứu này là phân tích toàn diện kiến trúc của YOLOv11, làm sáng tỏ các cơ chế tối ưu hóa giúp mô hình đạt được hiệu suất cao với tài nguyên hạn chế. Cụ thể, nghiên cứu tập trung vào:
+\begin{itemize}
+    \item Phân tích cấu trúc ba thành phần: Backbone, Neck và Head.
+    \item Giải thích cơ chế hoạt động của khối tinh chỉnh đặc trưng C3K2 và khối chú ý không gian C2PSA.
+    \item Đánh giá tiềm năng ứng dụng của mô hình trong các bài toán thực tế (như nhận diện cử chỉ tay).
+\end{itemize}
+
+Ý nghĩa của công trình nằm ở việc cung cấp một cái nhìn sâu sắc về xu hướng thiết kế mạng nơ-ron hiện đại: chuyển dịch từ việc tăng độ sâu mạng sang tối ưu hóa chất lượng đặc trưng thông qua cơ chế chú ý.
+
+\section{Tổng quan đóng góp}
+Báo cáo này mang lại những đóng góp chính sau:
+\begin{itemize}
+  \item Hệ thống hóa kiến trúc YOLOv11 và so sánh sự khác biệt kỹ thuật so với các phiên bản tiền nhiệm (YOLOv8, YOLOv9).
+  \item Phân tích toán học chi tiết về cơ chế chú ý C2PSA và các hàm mất mát tiên tiến (CIoU, DFL).
+  \item Đề xuất một kịch bản thực nghiệm chuẩn hóa để đánh giá hiệu suất mô hình trên bộ dữ liệu \textit{Rock Paper Scissors}.
+  \item Cung cấp cơ sở lý thuyết vững chắc cho việc triển khai YOLOv11 trên các thiết bị phần cứng thế hệ mới.
+\end{itemize}
+
+\section{Cấu trúc báo cáo}
+Báo cáo được tổ chức thành 6 chương như sau:
+\begin{itemize}
+  \item \textbf{Chapter 2: Các công trình liên quan.} Tổng quan về sự tiến hóa của dòng mô hình YOLO và các kỹ thuật nền tảng (CSPNet, PANet).
+  \item \textbf{Chapter 3: Kiến thức nền tảng.} Trình bày các khái niệm toán học cốt lõi như Tích chập, Cơ chế Chú ý (Attention) và các hàm mất mát.
+  \item \textbf{Chapter 4: Phương pháp nghiên cứu.} Đi sâu vào mô hình hóa toán học kiến trúc YOLOv11, phân tích chi tiết các khối C3K2 và C2PSA.
+  \item \textbf{Chapter 5: Thiết kế và Kịch bản Thực nghiệm.} Trình bày thiết lập môi trường, dữ liệu và chiến lược huấn luyện dự kiến.
+  \item \textbf{Chapter 6: Kết luận và Định hướng phát triển.} Tóm tắt các phát hiện lý thuyết và đề xuất kế hoạch triển khai thực tế trong tương lai.
+\end{itemize}

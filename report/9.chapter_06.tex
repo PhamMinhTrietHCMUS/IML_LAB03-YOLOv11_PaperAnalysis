@@ -1,0 +1,70 @@
+\chapter{Kết luận và Định hướng phát triển}
+
+\section{Tổng kết Nghiên cứu}
+Báo cáo này đã tập trung nghiên cứu và phân tích sâu về kiến trúc của YOLOv11 - phiên bản mới nhất trong dòng mô hình phát hiện đối tượng thời gian thực. Thông qua việc mổ xẻ cấu trúc mạng, các thành phần cốt lõi và thực nghiệm đánh giá thực tế, nhóm nghiên cứu đã làm rõ cơ sở lý thuyết cũng như hiệu quả thực tiễn của mô hình này so với các thế hệ tiền nhiệm (YOLOv8, YOLOv9).
+
+\subsection{Kết quả Phân tích Lý thuyết}
+\begin{itemize}
+    \item \textbf{Cơ chế trích xuất đặc trưng:} Khối \textbf{C3K2} được xác định là nhân tố chính giúp mô hình tối ưu hóa số lượng tham số, cho phép xây dựng các biến thể nhẹ (Nano/Small) phù hợp với tài nguyên hạn chế.
+    \item \textbf{Khả năng nhận thức không gian:} Việc tích hợp khối chú ý \textbf{C2PSA} vào cuối mạng xương sống (Backbone) giúp mô hình khắc phục nhược điểm của mạng CNN truyền thống trong việc xử lý thông tin ngữ cảnh toàn cục.
+    \item \textbf{Chiến lược tối ưu hóa:} Các hàm mất mát hiện đại (DFL, CIoU) nâng cao độ chính xác định vị, đặc biệt trong các trường hợp biên đối tượng không rõ ràng.
+\end{itemize}
+
+\subsection{Kết quả Thực nghiệm Chính}
+Đề tài đã thành công trong việc triển khai và đánh giá ba mô hình YOLOv8s, YOLOv9s và YOLOv11s trên bộ dữ liệu \textit{Rock Paper Scissors} với 329 ảnh test:
+
+\begin{itemize}
+    \item \textbf{YOLOv11s đạt F1-Score cao nhất:} 93.60\%, cao hơn YOLOv9s (93.40\%) và YOLOv8s (93.33\%).
+    \item \textbf{Recall vượt trội:} YOLOv11s có Recall 92.41\%, cao nhất trong ba mô hình, chứng tỏ khả năng phát hiện đối tượng toàn diện hơn.
+    \item \textbf{mAP@50 dẫn đầu:} 95.48\%, xác nhận hiệu quả của kiến trúc mới trong bài toán phát hiện đối tượng.
+    \item \textbf{Cân bằng tối ưu:} YOLOv11s thể hiện sự cân bằng tốt nhất giữa Precision và Recall, phù hợp cho ứng dụng thực tế.
+\end{itemize}
+
+\section{Đánh giá và Nhận xét}
+
+\subsection{Những Điểm Mạnh Đã Kiểm chứng}
+\begin{itemize}
+    \item \textbf{Hiệu suất tổng thể vượt trội:} YOLOv11s đạt F1-Score cao nhất (93.60\%), xác nhận sự cải tiến của kiến trúc mới.
+    \item \textbf{Khả năng phát hiện toàn diện:} Recall 92.41\% chứng tỏ cơ chế chú ý C2PSA thực sự giúp mô hình "nhìn thấy" nhiều đối tượng hơn, giảm thiểu trường hợp bỏ sót (False Negatives).
+    \item \textbf{Cân bằng Precision-Recall:} Mặc dù Precision thấp hơn một chút so với YOLOv8s, nhưng sự cân bằng tổng thể (F1-Score) của YOLOv11s tốt hơn, phù hợp với ứng dụng thực tế.
+    \item \textbf{Độ tin cậy cao:} mAP@50-95 đạt 80.75\% cho thấy độ chính xác định vị tốt, đảm bảo chất lượng bounding box.
+\end{itemize}
+
+\subsection{Hạn chế và Thách thức}
+\begin{itemize}
+    \item \textbf{Precision thấp hơn YOLOv8:} YOLOv11s có Precision 94.81\%, thấp hơn YOLOv8s (96.12\%). Điều này cho thấy có thể tăng một chút False Positives do cơ chế attention tăng độ nhạy.
+    \item \textbf{Khoảng cách cải tiến nhỏ:} Mức độ cải thiện so với YOLOv8s và YOLOv9s chỉ khoảng 0.2-0.3\% ở F1-Score, cho thấy các thế hệ YOLO gần đây đã rất tối ưu.
+    \item \textbf{Phạm vi đánh giá:} Thực nghiệm mới chỉ tập trung vào bài toán phát hiện đối tượng (Detection) trên một bộ dữ liệu, chưa khảo sát các tác vụ khác như Segmentation hay Pose Estimation.
+    \item \textbf{Thiếu đánh giá về tốc độ:} Chưa có so sánh chi tiết về FPS và thời gian inference trên các thiết bị khác nhau.
+\end{itemize}
+
+\section{Hướng phát triển tiếp theo}
+Dựa trên kết quả thực nghiệm đã đạt được, các hướng nghiên cứu và phát triển tiếp theo được đề xuất như sau:
+
+\begin{itemize}
+    \item \textbf{Đánh giá trên bộ dữ liệu lớn hơn:} 
+    Mở rộng thực nghiệm sang các bộ dữ liệu phức tạp hơn như COCO, Pascal VOC để đánh giá khả năng tổng quát hóa của YOLOv11s trong các tình huống đa dạng hơn.
+    
+    \item \textbf{Phân tích chi tiết về tốc độ:} 
+    Đo lường FPS và thời gian inference chi tiết trên các thiết bị khác nhau (GPU, CPU, Edge devices) để đánh giá khả năng triển khai thực tế. So sánh tốc độ giữa YOLOv11s với YOLOv8s và YOLOv9s.
+    
+    \item \textbf{Tối ưu hóa cho triển khai:} 
+    Thử nghiệm các kỹ thuật tối ưu hóa như quantization, pruning và xuất mô hình sang các định dạng nhẹ (ONNX, TensorRT) để tăng tốc độ suy luận mà vẫn duy trì độ chính xác.
+    
+    \item \textbf{Khảo sát các tác vụ khác:} 
+    Đánh giá hiệu suất của YOLOv11 trên các tác vụ Instance Segmentation, Pose Estimation và Object Tracking để có cái nhìn toàn diện hơn về khả năng của mô hình.
+    
+    \item \textbf{Phân tích lỗi sâu hơn:} 
+    Trực quan hóa và phân tích các trường hợp dự đoán sai (False Positives/Negatives) để hiểu rõ hơn về điểm mạnh và hạn chế của từng kiến trúc, từ đó đề xuất các cải tiến có mục tiêu.
+\end{itemize}
+
+\section{Kết luận}
+Qua nghiên cứu lý thuyết và thực nghiệm thực tế, YOLOv11 đã được xác nhận là một bước tiến đáng chú ý trong lĩnh vực phát hiện đối tượng thời gian thực. Kết quả đánh giá trên bộ dữ liệu Rock-Paper-Scissors cho thấy:
+
+\begin{itemize}
+    \item YOLOv11s đạt F1-Score cao nhất (93.60\%), vượt trội hơn YOLOv8s và YOLOv9s trong sự cân bằng giữa Precision và Recall.
+    \item Cơ chế chú ý C2PSA đã thực sự cải thiện khả năng phát hiện (Recall tăng lên 92.41\%), giúp mô hình "nhìn thấy" nhiều đối tượng hơn.
+    \item Kiến trúc C3K2 và các cải tiến khác giúp YOLOv11s duy trì hiệu suất cao trong khi tối ưu hóa số lượng tham số.
+\end{itemize}
+
+Việc chuyển dịch sang sử dụng các khối đặc trưng linh hoạt (C3K2) và cơ chế chú ý (C2PSA) cho thấy xu hướng thiết kế mô hình đang tập trung vào chất lượng luồng thông tin và khả năng nhận thức ngữ cảnh toàn cục hơn là chỉ tăng độ sâu mạng. Kết quả thực nghiệm đã xác nhận hiệu quả của hướng tiếp cận này, mở ra tiềm năng ứng dụng rộng rãi trong các lĩnh vực thực tế như nhận dạng cử chỉ, giám sát an ninh, xe tự hành và các hệ thống thị giác máy tính thời gian thực khác.

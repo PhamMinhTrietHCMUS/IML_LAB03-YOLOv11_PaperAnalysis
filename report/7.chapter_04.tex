@@ -1,0 +1,134 @@
+\chapter{Phương pháp nghiên cứu}
+
+\section{Kiến trúc Tổng thể và Luồng dữ liệu}
+YOLOv11 duy trì kiến trúc một giai đoạn (one-stage detector) gồm ba thành phần chính: Backbone, Neck và Head \cite{ultralytics2024yolov11}. Luồng dữ liệu qua mạng được mô hình hóa như một hàm ánh xạ $\mathcal{F}: \mathbb{R}^{H \times W \times 3} \rightarrow \mathcal{O}$, trong đó đầu vào là hình ảnh và đầu ra là tensor dự đoán.
+
+
+
+Quá trình xử lý đặc trưng qua các tầng được biểu diễn toán học như sau:
+\begin{align}
+    F_{backbone} &= \Phi_{C2PSA}(\Psi_{CSP}(\mathcal{I})) \tag{1} \\
+    F_{neck} &= \text{PANet}(F_{backbone}) \tag{2} \\
+    \mathcal{O} &= \text{DecoupledHead}(F_{neck}) \tag{3}
+\end{align}
+Trong đó, $\Psi_{CSP}$ là chuỗi các khối tích chập dựa trên kiến trúc CSPNet \cite{wang2020cspnet} trong Backbone, $\Phi_{C2PSA}$ là khối chú ý không gian, và PANet (Path Aggregation Network) \cite{liu2018panet} thực hiện việc hợp nhất đặc trưng đa tỷ lệ.
+
+\section{Phân tích Chi tiết Các Khối Kiến trúc (Building Blocks)}
+
+\subsection{Khối C3K2: Tinh chỉnh Đặc trưng Hiệu quả}
+Khối C3K2 là đơn vị xử lý cơ bản trong Backbone và Neck, thay thế cho khối C2f trong YOLOv8 \cite{jocher2023yolov8}. Nhiệm vụ chính của nó là trích xuất đặc trưng trong khi tối ưu hóa số lượng tham số \cite{ultralytics2024yolov11}.
+
+
+
+Cơ chế hoạt động của C3K2 dựa trên kiến trúc Cross-Stage Partial (CSP) cải tiến \cite{wang2020cspnet}:
+\begin{enumerate}
+    \item \textbf{Phân tách luồng (Split):} Đầu vào $X$ được đưa qua một lớp tích chập $1\times1$ để giảm chiều kênh, sau đó chia thành hai nhánh.
+    \item \textbf{Bottleneck cục bộ:} Một nhánh đi qua chuỗi các lớp tích chập với kích thước kernel có thể thay đổi (thường là $3\times3$ hoặc nhỏ hơn để tối ưu tốc độ), gọi là module $K2$. Module này tập trung vào việc học các đặc trưng cục bộ chi tiết.
+    \item \textbf{Hợp nhất (Fusion):} Hai nhánh được nối lại (concat) và trộn lẫn thông qua một lớp tích chập $1\times1$ cuối cùng.
+\end{enumerate}
+
+Sự cải tiến nằm ở việc cho phép tùy chỉnh kích thước kernel trong module $K2$, giúp mô hình linh hoạt hơn trong việc cân bằng giữa trường tiếp nhận (receptive field) và chi phí tính toán.
+
+\subsection{Khối C2PSA: Cơ chế Chú ý Không gian Phân cấp}
+Đây là cải tiến đột phá nhất trong YOLOv11, được đặt ở cuối Backbone \cite{ultralytics2024yolov11}. Khối này giải quyết vấn đề: \textit{"Làm thế nào để mô hình biết tập trung vào đối tượng quan trọng và bỏ qua nền nhiễu?"}
+
+
+
+\subsubsection{Tại sao cơ chế chú ý hoạt động?}
+Cơ chế chú ý trong C2PSA hoạt động dựa trên nguyên lý **Scaled Dot-Product Attention**, được giới thiệu lần đầu bởi Vaswani et al. \cite{vaswani2017attention}. Về mặt toán học, nó mô phỏng quá trình tìm kiếm sự tương đồng:
+\begin{align}
+    \text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)V \tag{4}
+\end{align}
+Trong đó:
+\begin{itemize}
+    \item \textbf{Query ($Q$):} Đại diện cho đặc trưng tại vị trí đang xét (ví dụ: một điểm ảnh thuộc về chiếc xe).
+    \item \textbf{Key ($K$):} Đại diện cho đặc trưng của các vị trí xung quanh.
+    \item \textbf{Tương tác $Q \cdot K^T$:} Phép nhân vô hướng này đo lường mức độ "liên quan". Nếu $Q$ và $K$ tương đồng (cùng thuộc một đối tượng), giá trị sẽ lớn.
+    \item \textbf{Softmax:} Chuyển đổi các giá trị tương đồng thành xác suất (trọng số). Vùng nào có trọng số cao, mô hình sẽ "chú ý" vào đó.
+    \item \textbf{Value ($V$):} Thông tin đặc trưng gốc được nhân với trọng số chú ý để làm nổi bật đối tượng và làm mờ nền.
+\end{itemize}
+
+\subsubsection{C2PSA hoạt động như thế nào?}
+Thay vì áp dụng chú ý lên toàn bộ kênh (gây tốn kém), C2PSA sử dụng chiến lược "chia để trị" được mô tả trong \textbf{Thuật toán 1}.
+
+\begin{algorithm}
+  \caption{Quy trình xử lý khối C2PSA}
+    \textbf{Function C2PSA\_Block}($X$)
+
+    \textbf{Input:}\\ 
+    $X$: Tensor đặc trưng đầu vào $\in \mathbb{R}^{H \times W \times C}$\\ 
+    \textbf{Output:}\\
+    $Y$: Tensor đặc trưng đầu ra $\in \mathbb{R}^{H \times W \times C}$
+  
+    \begin{algorithmic}[1]
+    \STATE $X' \gets \text{Conv}_{1\times1}(X)$ \COMMENT{Giảm chiều và trộn thông tin}
+    \STATE $X_A, X_B \gets \text{Split}(X', \text{axis}=channel)$ \COMMENT{Chia đôi kênh}
+    
+    \STATE \textit{// Nhánh Attention (chỉ xử lý trên một nửa số kênh $X_B$)}
+    \STATE $Q \gets X_B, K \gets X_B, V \gets X_B$
+    \STATE $A \gets \text{Softmax}(\frac{QK^T}{\sqrt{d_k}})$ \COMMENT{Tính bản đồ nhiệt chú ý \cite{vaswani2017attention}}
+    \STATE $X_{attn} \gets A \cdot V$ \COMMENT{Áp dụng chú ý}
+    
+    \STATE \textit{// Bổ sung thông tin vị trí không gian}
+    \STATE $X_{attn} \gets \text{PositionalEncoding}(X_{attn})$ 
+    
+    \STATE \textit{// Hợp nhất}
+    \STATE $Y_{temp} \gets \text{Concat}(X_A, X_{attn})$ \COMMENT{Nối nhánh gốc và nhánh chú ý}
+    \STATE $Y \gets \text{Conv}_{1\times1}(Y_{temp})$ \COMMENT{Tinh chỉnh cuối cùng}
+    \RETURN $Y$
+    \end{algorithmic}
+\end{algorithm}
+
+\section{Mô hình hóa Hàm Mất mát (Loss Functions)}
+Để huấn luyện mô hình, phương pháp sử dụng hàm mất mát tổng hợp $\mathcal{L}_{total}$ bao gồm ba thành phần, được thiết kế để tối ưu hóa đồng thời vị trí và phân loại.
+
+\subsection{Tổn thất Hộp giới hạn (Box Loss)}
+YOLOv11 sử dụng **CIoU Loss** (Complete IoU) \cite{zheng2020ciou} để khắc phục nhược điểm của IoU truyền thống. CIoU tính toán dựa trên ba yếu tố hình học: diện tích chồng lấn, khoảng cách tâm, và tỷ lệ khung hình.
+\begin{align}
+    \mathcal{L}_{box} = 1 - IoU + \frac{\rho^2(b, b^{gt})}{c^2} + \alpha v \tag{5}
+\end{align}
+Trong đó $\rho$ là khoảng cách Euclidean giữa hai tâm hộp, $c$ là đường chéo của bao lồi nhỏ nhất, và $\alpha v$ là tham số phạt sự sai lệch về tỷ lệ khung hình.
+
+\subsection{Distribution Focal Loss (DFL)}
+Để tăng độ chính xác khi định vị các cạnh của hộp (đặc biệt là khi biên đối tượng bị mờ), YOLOv11 mô hình hóa vị trí cạnh dưới dạng một phân phối xác suất thay vì một số thực đơn lẻ, dựa trên nghiên cứu về DFL \cite{li2020dfl}.
+\begin{align}
+    \mathcal{L}_{dfl}(S_i, S_{i+1}) = -((y_{i+1} - y)\log(S_i) + (y - y_i)\log(S_{i+1})) \tag{6}
+\end{align}
+Cơ chế này cho phép mạng "lưỡng lự" giữa hai giá trị nguyên lân cận, phản ánh đúng hơn sự không chắc chắn của dữ liệu thực tế.
+
+\subsection{Tổn thất Phân loại (Class Loss)}
+Sử dụng Binary Cross Entropy (BCE) loss:
+\begin{align}
+    \mathcal{L}_{cls} = -\sum_{i \in classes} [y_i \log(\hat{y}_i) + (1-y_i) \log(1-\hat{y}_i)] \tag{7}
+\end{align}
+
+\section{Chiến lược Tối ưu hóa và Hậu xử lý}
+Sau khi mạng đưa ra dự đoán, thuật toán Non-Maximum Suppression (NMS) \cite{redmon2016yolo} được sử dụng để loại bỏ các hộp dư thừa.
+
+\begin{algorithm}[H]
+  \caption{Non-Maximum Suppression (NMS)}
+    \textbf{Function NMS}($\mathcal{B}$, $S$, $\tau$)
+
+    \textbf{Input:}\\
+    $\mathcal{B}$: Tập hợp các hộp dự đoán $\{b_1, \dots, b_N\}$\\
+    $S$: Điểm tin cậy tương ứng $\{s_1, \dots, s_N\}$\\
+    $\tau$: Ngưỡng IoU\\
+  
+    \textbf{Output:}\\
+    $\mathcal{D}$: Tập hợp các phát hiện cuối cùng
+  
+    \begin{algorithmic}[1]
+    \STATE $\mathcal{D} \gets \emptyset$
+    \WHILE{$\mathcal{B} \neq \emptyset$}
+        \STATE $m \gets \text{argmax}(S)$ \COMMENT{Chọn hộp có điểm tin cậy cao nhất}
+        \STATE $\mathcal{D} \gets \mathcal{D} \cup \{b_m\}$
+        \STATE $\mathcal{B} \gets \mathcal{B} \setminus \{b_m\}$
+        \FOR{$b_i \in \mathcal{B}$}
+            \IF{$IoU(b_m, b_i) > \tau$}
+                \STATE $\mathcal{B} \gets \mathcal{B} \setminus \{b_i\}$ \COMMENT{Loại bỏ các hộp chồng lấn quá nhiều}
+            \ENDIF
+        \ENDFOR
+    \ENDWHILE
+    \RETURN $\mathcal{D}$
+    \end{algorithmic}
+\end{algorithm}

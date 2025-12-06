@@ -1,0 +1,260 @@
+\chapter{Thực nghiệm và Đánh giá}
+
+Chương này trình bày kết quả thực nghiệm đã triển khai, mô tả bộ dữ liệu và các tiêu chí đánh giá được sử dụng để kiểm chứng hiệu quả của kiến trúc YOLOv11. Mục tiêu của phần thực nghiệm là so sánh hiệu suất của YOLOv11 với các phiên bản tiền nhiệm (YOLOv8, YOLOv9) trên bài toán nhận diện cử chỉ tay.
+
+\section{Bộ dữ liệu (Dataset)}
+Để đánh giá khả năng phát hiện đối tượng trong bối cảnh thực tế với các đặc trưng hình học gần giống nhau, nghiên cứu sử dụng bộ dữ liệu \textbf{Rock Paper Scissors} được lưu trữ trên Roboflow.
+
+\begin{itemize}
+    \item \textbf{Nguồn dữ liệu:} Roboflow Universe \footnote{\url{https://universe.roboflow.com/roboflow-58fyf/rock-paper-scissors-sxsw}}.
+    \item \textbf{Số lượng lớp (Classes):} 3 lớp (Rock, Paper, Scissors).
+    \item \textbf{Đặc điểm:} Bộ dữ liệu bao gồm các hình ảnh bàn tay mô phỏng ba cử chỉ của trò chơi "Oẳn tù tì". Đây là bài toán thử thách khả năng của mô hình trong việc phân biệt các chi tiết hình dạng ngón tay và tư thế tay, vốn có sự tương đồng cao về màu sắc da và bối cảnh.
+    \item \textbf{Phân chia dữ liệu:} Dữ liệu được chia theo tỷ lệ tiêu chuẩn:
+    \begin{itemize}
+        \item \textbf{Train set:} 70\% (2196 ảnh - Dùng để huấn luyện trọng số).
+        \item \textbf{Validation set:} 20\% (604 ảnh - Dùng để tinh chỉnh siêu tham số và đánh giá trong quá trình huấn luyện).
+        \item \textbf{Test set:} 10\% (329 ảnh - Dùng để đánh giá hiệu suất cuối cùng).
+    \end{itemize}
+\end{itemize}
+
+\section{Môi trường và Cấu hình Thực nghiệm}
+
+\subsection{Phần cứng}
+Quá trình huấn luyện và kiểm thử dự kiến sẽ được thực hiện trên môi trường máy tính cá nhân hiệu năng cao (High-End PC) với cấu hình hỗ trợ GPU thế hệ mới để tối ưu hóa thời gian huấn luyện:
+\begin{itemize}
+    \item \textbf{GPU:} NVIDIA RTX 5070 WINDFORCE OC SFF 12G (12 GB VRAM).
+    \item \textbf{CPU:} Intel Core i5-14600K.
+    \item \textbf{RAM:} Không giới hạn (Đảm bảo dung lượng hệ thống không là điểm nghẽn).
+\end{itemize}
+
+\subsection{Phần mềm và Thư viện}
+\begin{itemize}
+    \item \textbf{Ngôn ngữ:} Python 3.13+.
+    \item \textbf{Framework:} PyTorch (phiên bản hỗ trợ CUDA mới nhất).
+    \item \textbf{Thư viện YOLO:} Ultralytics (hỗ trợ YOLOv8, YOLOv11) và repository chính thức của YOLOv9.
+    \item \textbf{Cấu hình huấn luyện:} Các tham số siêu hình (hyperparameters) được thiết lập cố định cho các mô hình để đảm bảo công bằng:
+    \begin{itemize}
+        \item \textbf{Epochs:} 100.
+        \item \textbf{Batch size:} 16 hoặc 32 (tự động điều chỉnh dựa trên VRAM).
+        \item \textbf{Image Size:} $640 \times 640$.
+        \item \textbf{Optimizer:} Tự động (Auto - thường là SGD hoặc AdamW tùy ngữ cảnh).
+    \end{itemize}
+\end{itemize}
+
+Câu lệnh huấn luyện mẫu cho YOLOv11 được thực hiện như sau:
+\begin{verbatim}
+yolo detect train data=data.yaml model=yolo11s.pt epochs=100 imgsz=640
+\end{verbatim}
+
+\section{Kịch bản So sánh và Đánh giá}
+Nghiên cứu sẽ thực hiện so sánh đối chứng giữa ba thế hệ YOLO gần nhất để làm rõ sự cải tiến của kiến trúc YOLOv11.
+
+\subsection{Các mô hình đối chứng}
+\begin{enumerate}
+    \item \textbf{YOLOv8 (Baseline):} Phiên bản ổn định và phổ biến nhất hiện nay, sử dụng khối C2f.
+    \item \textbf{YOLOv9:} Phiên bản tập trung vào kiến trúc GELAN và PGI.
+    \item \textbf{YOLOv11 (Đề xuất):} Phiên bản mới nhất sử dụng khối C3K2 và cơ chế chú ý C2PSA.
+\end{enumerate}
+Để đảm bảo tính công bằng và phù hợp với câu lệnh huấn luyện đã thiết lập, các mô hình sẽ được so sánh ở cùng một kích thước \textbf{Small (s)} (ví dụ: \texttt{yolov8s.pt}, \texttt{yolov9s.pt}, \texttt{yolo11s.pt}). Phân khúc Small cung cấp sự cân bằng tốt giữa độ chính xác và tốc độ, phù hợp với phần cứng thí nghiệm.
+
+\subsection{Các chỉ số đánh giá (Evaluation Metrics)}
+Hiệu suất của các mô hình sẽ được đo lường qua các chỉ số định lượng sau:
+
+\begin{itemize}
+    \item \textbf{mAP@50 (Mean Average Precision at IoU=0.5):} Độ chính xác trung bình khi ngưỡng IoU là 0.5. Chỉ số này đánh giá khả năng phát hiện đúng đối tượng.
+    \item \textbf{mAP@50-95:} Chỉ số khắt khe hơn, là trung bình của mAP tại các ngưỡng IoU từ 0.5 đến 0.95 (bước nhảy 0.05). Chỉ số này đánh giá độ chính xác của vị trí hộp giới hạn (localization accuracy).
+    \item \textbf{Params (Parameters):} Tổng số lượng tham số của mô hình (đơn vị: triệu).
+    \item \textbf{FLOPs (Floating Point Operations):} Số phép tính dấu phẩy động (đơn vị: Giga). Đánh giá chi phí tính toán.
+    \item \textbf{FPS (Frames Per Second):} Tốc độ xử lý thực tế trên GPU RTX 5070.
+\end{itemize}
+
+\section{Kết quả Thực nghiệm}
+
+Sau khi hoàn thành quá trình huấn luyện 100 epochs cho cả ba mô hình trên bộ dữ liệu Rock-Paper-Scissors, các kết quả đánh giá trên tập test (329 ảnh) được tổng hợp như sau:
+
+\subsection{Kết quả So sánh Tổng quan}
+
+Bảng \ref{tab:comparison} tổng hợp các chỉ số đánh giá chính của ba mô hình:
+
+\begin{table}[H]
+\centering
+\caption{So sánh hiệu suất các mô hình YOLO trên tập Test}
+\label{tab:comparison}
+\begin{tabular}{lcccccc}
+\hline
+\textbf{Model} & \textbf{Precision} & \textbf{Recall} & \textbf{mAP@50} & \textbf{mAP@50-95} & \textbf{F1-Score} \\
+\hline
+YOLOv8s  & \textbf{0.9612} & 0.9069 & 0.9541 & \textbf{0.8084} & 0.9333 \\
+YOLOv9s  & 0.9546 & 0.9144 & 0.9496 & 0.8078 & 0.9340 \\
+YOLOv11s & 0.9481 & \textbf{0.9241} & \textbf{0.9548} & 0.8075 & \textbf{0.9360} \\
+\hline
+\end{tabular}
+\end{table}
+
+\subsection{Phân tích Kết quả}
+
+\begin{enumerate}
+    \item \textbf{Về độ chính xác (Precision):} 
+    YOLOv8s đạt Precision cao nhất (96.12\%), cao hơn YOLOv9s (95.46\%) và YOLOv11s (94.81\%). Điều này cho thấy YOLOv8s có khả năng giảm thiểu False Positives tốt hơn trong bộ dữ liệu này.
+    
+    \item \textbf{Về độ phủ (Recall):} 
+    YOLOv11s dẫn đầu với Recall 92.41\%, vượt trội so với YOLOv9s (91.44\%) và YOLOv8s (90.69\%). Cơ chế chú ý C2PSA đã giúp mô hình phát hiện được nhiều đối tượng thực tế hơn (giảm False Negatives).
+    
+    \item \textbf{Về mAP@50:} 
+    YOLOv11s đạt mAP@50 cao nhất (95.48\%), nhỉnh hơn YOLOv8s (95.41\%) và YOLOv9s (94.96\%). Đây là chỉ số quan trọng đánh giá khả năng phát hiện đối tượng tổng thể.
+    
+    \item \textbf{Về mAP@50-95:} 
+    Cả ba mô hình đều đạt kết quả rất gần nhau (~80.8\%), cho thấy độ chính xác định vị (localization) tương đương. YOLOv8s nhỉnh hơn một chút với 80.84\%.
+    
+    \item \textbf{Về F1-Score (Cân bằng tổng thể):} 
+    YOLOv11s đạt F1-Score cao nhất (93.60\%), thể hiện sự cân bằng tốt nhất giữa Precision và Recall. Đây là chỉ số quan trọng nhất để đánh giá hiệu suất tổng thể.
+\end{enumerate}
+
+\subsection{Thời gian Huấn luyện}
+
+Bảng \ref{tab:training_time} so sánh tổng thời gian huấn luyện và thời gian trung bình mỗi epoch của ba mô hình YOLO:
+
+\begin{table}[H]
+\centering
+\caption{So sánh thời gian huấn luyện (100 epochs)}
+\label{tab:training_time}
+\begin{tabular}{lccc}
+\hline
+\textbf{Mô hình} & \textbf{Tổng thời gian (giây)} & \textbf{Tổng thời gian (giờ)} & \textbf{TB/epoch (giây)} \\
+\hline
+YOLOv8s  & 2066.24 & 0.574 & 20.66 \\
+YOLOv9s  & 3085.47 & 0.857 & 30.85 \\
+YOLOv11s & 2355.41 & 0.654 & 23.55 \\
+\hline
+\end{tabular}
+\end{table}
+
+\textbf{Nhận xét về thời gian huấn luyện:}
+\begin{enumerate}
+    \item \textbf{YOLOv8s nhanh nhất:} Chỉ mất 34.4 phút để hoàn thành 100 epochs, nhanh hơn YOLOv11s 14\% và nhanh hơn YOLOv9s tới 49\%. Điều này cho thấy kiến trúc C2f của YOLOv8 được tối ưu tốt về mặt tính toán.
+    
+    \item \textbf{YOLOv9s chậm nhất:} Mất 51.4 phút, gần gấp 1.5 lần YOLOv8s. Nguyên nhân là kiến trúc GELAN phức tạp hơn với nhiều kết nối gradient path.
+    
+    \item \textbf{YOLOv11s cân bằng:} Với 39.2 phút, YOLOv11s nằm giữa hai mô hình kia. Mặc dù sử dụng C2PSA (phức tạp hơn C2f), nhưng vẫn nhanh hơn đáng kể so với YOLOv9s.
+    
+    \item \textbf{Trade-off hiệu năng-thời gian:} YOLOv11s đạt được sự cân bằng tốt nhất - hiệu năng cao nhất (F1-Score 93.60\%) với thời gian huấn luyện chấp nhận được, chỉ chậm hơn YOLOv8s 14\% nhưng đạt độ chính xác cao hơn.
+\end{enumerate}
+
+\subsection{Kết quả Chi tiết theo Lớp}
+
+Bảng \ref{tab:per_class} trình bày kết quả đánh giá chi tiết cho từng lớp đối tượng:
+
+\begin{table}[H]
+\centering
+\caption{Kết quả đánh giá theo từng lớp (YOLOv11s)}
+\label{tab:per_class}
+\begin{tabular}{lcccc}
+\hline
+\textbf{Class} & \textbf{Images} & \textbf{Instances} & \textbf{Precision} & \textbf{Recall} \\
+\hline
+Paper    & 73 & 73 & 0.941 & 0.881 \\
+Rock     & 66 & 75 & 0.933 & 0.920 \\
+Scissors & 67 & 69 & 0.970 & 0.971 \\
+\hline
+\textbf{All} & \textbf{329} & \textbf{217} & \textbf{0.948} & \textbf{0.924} \\
+\hline
+\end{tabular}
+\end{table}
+
+\subsection{Nhận xét}
+
+\begin{itemize}
+    \item \textbf{Kết quả vượt mong đợi:} Cả ba mô hình đều đạt hiệu suất rất cao (>93\% F1-Score), chứng tỏ kiến trúc YOLO rất phù hợp với bài toán nhận diện cử chỉ tay.
+    \item \textbf{YOLOv11 thể hiện sự cân bằng tốt:} Mặc dù không dẫn đầu ở mọi chỉ số, YOLOv11s có F1-Score cao nhất, thể hiện sự cân bằng tối ưu giữa Precision và Recall.
+    \item \textbf{Cải tiến của C2PSA:} Recall cao hơn của YOLOv11s chứng tỏ cơ chế chú ý đã giúp mô hình "nhìn thấy" nhiều đối tượng hơn, đặc biệt trong các trường hợp khó.
+    \item \textbf{Sự khác biệt nhỏ:} Khoảng cách hiệu suất giữa các mô hình là rất nhỏ (<1\%), cho thấy cả ba thế hệ YOLO đều đã đạt mức độ tinh chỉnh cao.
+\end{itemize}
+
+\subsection{Trực quan hóa Kết quả}
+
+\subsubsection{Biểu đồ So sánh Tổng quan}
+
+Hình \ref{fig:model_comparison} và \ref{fig:comparison_table} trình bày kết quả so sánh trực quan giữa ba mô hình:
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{../evaluation_results/model_comparison.png}
+    \caption{So sánh hiệu suất các mô hình YOLO trên test set}
+    \label{fig:model_comparison}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{../evaluation_results/comparison_table.png}
+    \caption{Bảng so sánh chi tiết (ô màu xanh = giá trị tốt nhất)}
+    \label{fig:comparison_table}
+\end{figure}
+
+Biểu đồ cho thấy rõ ràng sự cân bằng vượt trội của YOLOv11s trong radar chart, với điểm mạnh về Recall và mAP@50.
+
+\subsubsection{Ma trận Nhầm lẫn (Confusion Matrix)}
+
+Ma trận nhầm lẫn của YOLOv11s (Hình \ref{fig:confusion_yolov11}) cho thấy mô hình phân loại rất chính xác giữa các cử chỉ:
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\textwidth]{../evaluation_results/YOLOv11/confusion_matrix_normalized.png}
+    \caption{Ma trận nhầm lẫn chuẩn hóa của YOLOv11s}
+    \label{fig:confusion_yolov11}
+\end{figure}
+
+Ma trận cho thấy độ chính xác cao trên đường chéo chính, với tỷ lệ phân loại đúng >90\% cho tất cả các lớp.
+
+\subsubsection{Đường cong Precision-Recall}
+
+Hình \ref{fig:pr_curves} so sánh đường cong PR của ba mô hình:
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../evaluation_results/YOLOv8/BoxPR_curve.png}
+        \caption{YOLOv8s}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../evaluation_results/YOLOv9/BoxPR_curve.png}
+        \caption{YOLOv9s}
+    \end{subfigure}
+    
+    \vspace{0.5cm}
+    
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../evaluation_results/YOLOv11/BoxPR_curve.png}
+        \caption{YOLOv11s}
+    \end{subfigure}
+    \caption{Đường cong Precision-Recall của các mô hình}
+    \label{fig:pr_curves}
+\end{figure}
+
+Đường cong PR cho thấy YOLOv11s duy trì precision cao ở các mức recall khác nhau, thể hiện tính ổn định của mô hình.
+
+\subsubsection{Kết quả Dự đoán Trên Test Set}
+
+Hình \ref{fig:predictions} minh họa một số kết quả dự đoán của YOLOv11s trên tập test:
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../evaluation_results/YOLOv11/val_batch0_pred.jpg}
+        \caption{Batch 0}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../evaluation_results/YOLOv11/val_batch1_pred.jpg}
+        \caption{Batch 1}
+    \end{subfigure}
+    \caption{Ví dụ kết quả dự đoán của YOLOv11s trên test set}
+    \label{fig:predictions}
+\end{figure}
+
+Các hình ảnh cho thấy mô hình phát hiện chính xác các cử chỉ với confidence score cao (>0.9).

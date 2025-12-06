@@ -1,0 +1,62 @@
+\chapter{Kiến thức nền tảng}
+
+\section{Mạng Nơ-ron Tích chập (CNN) và Các phép toán cơ bản}
+Mạng nơ-ron tích chập (CNN) là nền tảng của các mô hình thị giác máy tính hiện đại \cite{redmon2016yolo}. Một mô hình CNN được cấu thành từ các lớp biến đổi phi tuyến tính học được từ dữ liệu.
+Xét một tensor đầu vào $\mathbf{X} \in \mathbb{R}^{H \times W \times C_{in}}$, trong đó $H, W$ là chiều cao và chiều rộng không gian, $C_{in}$ là số kênh đầu vào. Một lớp tích chập (Convolutional Layer) thực hiện phép toán tích chập với bộ lọc (kernel) $\mathbf{K} \in \mathbb{R}^{k \times k \times C_{in} \times C_{out}}$ để tạo ra tensor đầu ra $\mathbf{Y}$.
+
+Công thức tổng quát cho một phần tử tại vị trí $(i, j)$ trên kênh đầu ra $c$ được định nghĩa là:
+\begin{align}
+    \mathbf{Y}_{i,j,c} = \sum_{m=0}^{k-1} \sum_{n=0}^{k-1} \sum_{l=0}^{C_{in}-1} \mathbf{K}_{m,n,l,c} \cdot \mathbf{X}_{i+m, j+n, l} + \mathbf{b}_c \tag{1}
+\end{align}
+Trong đó $\mathbf{b} \in \mathbb{R}^{C_{out}}$ là vector bias.
+
+Sau phép tích chập, YOLOv11 sử dụng hàm kích hoạt phi tuyến tính SiLU (Sigmoid Linear Unit) \cite{elfwing2018silu}. Với một đầu vào vô hướng $x$, hàm SiLU được định nghĩa:
+\begin{align}
+    \text{SiLU}(x) = x \cdot \sigma(x) = \frac{x}{1 + e^{-x}} \tag{2}
+\end{align}
+SiLU cho phép đạo hàm mượt hơn so với ReLU, giúp quá trình huấn luyện hội tụ tốt hơn trong các mạng sâu.
+
+\section{Cơ chế Chú ý (Attention Mechanism)}
+Để khắc phục hạn chế của CNN trong việc nắm bắt các phụ thuộc xa (long-range dependencies), cơ chế chú ý được giới thiệu \cite{vaswani2017attention}. Đây là nền tảng lý thuyết cho khối C2PSA trong YOLOv11 \cite{ultralytics2024yolov11}.
+
+Cơ chế chú ý, cụ thể là Scaled Dot-Product Attention, hoạt động trên ba ma trận: Truy vấn ($\mathbf{Q}$), Khóa ($\mathbf{K}$) và Giá trị ($\mathbf{V}$). Giả sử đầu vào là chuỗi các vector đặc trưng có kích thước $d_k$. Hàm chú ý tính toán trọng số dựa trên độ tương đồng giữa $\mathbf{Q}$ và $\mathbf{K}$, sau đó áp dụng lên $\mathbf{V}$:
+
+\begin{align}
+    \text{Attention}(\mathbf{Q}, \mathbf{K}, \mathbf{V}) = \text{softmax}\left(\frac{\mathbf{Q}\mathbf{K}^T}{\sqrt{d_k}}\right)\mathbf{V} \tag{3}
+\end{align}
+
+Trong ngữ cảnh của thị giác máy tính, $\mathbf{Q}$ có thể đại diện cho đặc trưng tại một pixel đang xét, và $\mathbf{K}$ là đặc trưng của các pixel lân cận. Phép nhân $\mathbf{Q}\mathbf{K}^T$ tạo ra bản đồ nhiệt (heatmap) thể hiện vùng nào trong ảnh cần được "chú ý" nhiều hơn.
+
+\section{Bài toán Phát hiện Đối tượng (Object Detection)}
+Bài toán phát hiện đối tượng là việc xác định vị trí và phân loại các đối tượng trong một hình ảnh $\mathcal{I}$ \cite{redmon2016yolo}.
+Ta định nghĩa không gian nhãn $\mathcal{L} = \{1, \dots, K\}$ tương ứng với $K$ lớp đối tượng. Mục tiêu là tìm tập hợp các phát hiện $\mathcal{D} = \{d_1, \dots, d_N\}$, trong đó mỗi $d_i = (\mathbf{b}_i, c_i, s_i)$.
+\begin{itemize}
+    \item $\mathbf{b}_i = (x_c, y_c, w, h)$: Tọa độ hộp giới hạn (bounding box), với $(x_c, y_c)$ là tâm, $w, h$ là chiều rộng và chiều cao, chuẩn hóa về miền $[0, 1]$.
+    \item $c_i \in \mathcal{L}$: Nhãn lớp dự đoán.
+    \item $s_i \in [0, 1]$: Điểm tin cậy (confidence score).
+\end{itemize}
+
+Để đánh giá độ chính xác của một hộp dự đoán $B_p$ so với hộp sự thật $B_{gt}$, ta sử dụng chỉ số IoU (Intersection over Union) \cite{lin2014coco}:
+\begin{align}
+    \text{IoU}(B_p, B_{gt}) = \frac{\text{Area}(B_p \cap B_{gt})}{\text{Area}(B_p \cup B_{gt})} \tag{4}
+\end{align}
+
+\textbf{Ví dụ 1 }\textit{Giả sử hệ thống dự đoán một hộp giới hạn cho đối tượng "xe hơi" tại vị trí $B_p = [100, 100, 50, 50]$ (định dạng x, y, w, h). Hộp sự thật (Ground Truth) là $B_{gt} = [100, 100, 40, 40]$. Diện tích giao nhau là diện tích của $B_{gt}$ ($1600$), diện tích hợp là diện tích của $B_p$ ($2500$). Khi đó $\text{IoU} = 1600/2500 = 0.64$. Nếu ngưỡng chấp nhận là $0.5$, dự đoán này được coi là True Positive.}
+
+\section{Spatial Pyramid Pooling (SPP)}
+SPP là kỹ thuật giúp mô hình xử lý các đối tượng ở nhiều tỷ lệ khác nhau \cite{he2015spp}. Thay vì chỉ lấy mẫu (pooling) với một kích thước cố định, SPP thực hiện max-pooling với nhiều kích thước kernel khác nhau (ví dụ: $k=\{5, 9, 13\}$) nhưng giữ nguyên stride bằng 1 và padding để bảo toàn kích thước không gian.
+\begin{align}
+    \mathbf{Y}_{SPP} = \text{Concat}(\text{MaxPool}_{k_1}(\mathbf{X}), \text{MaxPool}_{k_2}(\mathbf{X}), \dots, \mathbf{X}) \tag{5}
+\end{align}
+Việc này giúp mở rộng trường tiếp nhận (receptive field) của mạng nơ-ron, cho phép nó "nhìn thấy" ngữ cảnh rộng hơn mà không làm mất thông tin cục bộ. Trong YOLOv11, biến thể SPPF (Fast) được sử dụng để tối ưu hóa tốc độ bằng cách nối tiếp các lớp pooling $5 \times 5$ \cite{jocher2023yolov8}.
+
+\section{Distribution Focal Loss (DFL)}
+Trong các mô hình YOLO hiện đại (bao gồm v8 và v11), bài toán hồi quy hộp giới hạn không chỉ đơn thuần là dự đoán 4 giá trị $(x, y, w, h)$. Thay vào đó, mô hình sử dụng DFL \cite{li2020dfl} để dự đoán phân phối xác suất của các cạnh hộp.
+
+Khoảng cách từ tâm đến cạnh hộp được mô hình hóa dưới dạng một biến ngẫu nhiên $y$. DFL chia miền giá trị liên tục thành các đoạn rời rạc và tính toán xác suất các giá trị lân cận. Hàm mất mát DFL tổng quát cho nhãn $y$ và hai giá trị lân cận $y_i, y_{i+1}$ ($y_i \le y \le y_{i+1}$) là:
+\begin{align}
+    \mathcal{L}_{DFL}(S_i, S_{i+1}) = -((y_{i+1} - y)\log(S_i) + (y - y_i)\log(S_{i+1})) \tag{6}
+\end{align}
+Trong đó $S_i, S_{i+1}$ là đầu ra softmax tại các điểm $y_i, y_{i+1}$.
+
+\textbf{Ví dụ 2 }\textit{Xét việc dự đoán khoảng cách từ tâm đến cạnh trái của hộp giới hạn. Thay vì dự đoán trực tiếp giá trị thực là $3.2$, mạng DFL sẽ đưa ra xác suất cho các giá trị nguyên lân cận là $3$ và $4$. Nếu mạng dự đoán $P(3) = 0.8$ và $P(4) = 0.2$, giá trị hồi quy cuối cùng sẽ là $3 \times 0.8 + 4 \times 0.2 = 3.2$. Cơ chế này giúp mô hình xử lý tốt hơn các biên không rõ ràng hoặc bị mờ trong ảnh.}

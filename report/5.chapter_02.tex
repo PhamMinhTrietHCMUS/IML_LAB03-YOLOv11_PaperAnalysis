@@ -1,0 +1,25 @@
+\chapter{Các công trình liên quan}
+
+\section{Tổng quan nghiên cứu liên quan}
+Lĩnh vực phát hiện đối tượng (Object Detection) đã chứng kiến sự phát triển vượt bậc trong thập kỷ qua, với dòng mô hình YOLO (You Only Look Once) đóng vai trò tiên phong trong việc xử lý thời gian thực \cite{redmon2016yolo}. Từ phiên bản đầu tiên (YOLOv1) đến các phiên bản hiện đại hơn như YOLOv8 \cite{jocher2023yolov8} và YOLOv10, xu hướng nghiên cứu luôn tập trung vào việc tìm kiếm sự cân bằng tối ưu giữa tốc độ (speed) và độ chính xác (accuracy).
+
+Các nghiên cứu trước đây chủ yếu tập trung vào việc cải thiện kiến trúc mạng xương sống (Backbone) và cổ mạng (Neck) để trích xuất đặc trưng hiệu quả hơn \cite{wang2020cspnet}. Tuy nhiên, thách thức về việc duy trì hiệu suất cao trên các thiết bị biên (edge devices) với tài nguyên tính toán hạn chế vẫn là động lực chính thúc đẩy sự ra đời của các kiến trúc mới như YOLOv11 \cite{ultralytics2024yolov11}.
+
+\section{So sánh với các cách tiếp cận hiện có}
+Sự khác biệt cốt lõi giữa YOLOv11 và các phương pháp hiện có nằm ở thiết kế của khối trích xuất đặc trưng. Dựa trên phân tích kiến trúc, ta có thể so sánh ba thế hệ khối đặc trưng tiêu biểu:
+
+\begin{itemize}
+    \item \textbf{YOLOv5 và Khối C3:} Sử dụng các tích chập $3\times3$ tiêu chuẩn. Khối C3 cung cấp sự cân bằng cơ bản giữa tốc độ và độ chính xác nhưng hạn chế về luồng gradient và khả năng xử lý các trường hợp phức tạp so với các thế hệ sau.
+    \item \textbf{YOLOv8 và Khối C2F:} Tập trung tối đa vào việc tăng cường luồng gradient thông qua cấu trúc hợp nhất kép (2F) \cite{jocher2023yolov8}. Mặc dù C2F vượt trội trong việc phát hiện vật thể bị che khuất và trong môi trường đông đúc, nó thường đi kèm với chi phí tính toán cao hơn, gây trở ngại cho các ứng dụng yêu cầu độ trễ cực thấp.
+    \item \textbf{YOLOv11 và Khối C3K2:} Tiếp cận vấn đề theo hướng tối ưu hóa kích thước kernel \cite{ultralytics2024yolov11}. Khối C3K2 ưu tiên tốc độ xử lý và giảm thiểu tham số, khắc phục nhược điểm về chi phí của C2F. Điều này làm cho YOLOv11 trở nên lý tưởng cho các ứng dụng thời gian thực như drone hay xe tự lái.
+\end{itemize}
+
+\section{Khoảng trống nghiên cứu}
+Mặc dù các phiên bản YOLO trước đây đã đạt được độ chính xác ấn tượng, vẫn tồn tại một "khoảng trống" trong việc tối ưu hóa triệt để cho các mô hình kích thước nhỏ (Nano/Small) mà không làm suy giảm khả năng nhận diện ngữ cảnh không gian.
+
+Các mô hình cũ thường phải đánh đổi: hoặc là nhẹ nhưng kém chính xác (do thiếu cơ chế chú ý sâu \cite{vaswani2017attention}), hoặc là chính xác nhưng quá nặng nề (do kiến trúc quá phức tạp). Chưa có nhiều kiến trúc trước đây tích hợp hiệu quả cơ chế chú ý không gian (như C2PSA) trực tiếp vào cuối mạng xương sống để giải quyết bài toán "nhận thức vị trí" mà không làm tăng vọt chi phí tính toán. YOLOv11 ra đời để lấp đầy khoảng trống này \cite{ultralytics2024yolov11}.
+
+\section{Định vị công trình trong bức tranh chung}
+Báo cáo này định vị YOLOv11 không chỉ là một bản cập nhật gia tăng, mà là một bước chuyển dịch chiến lược về phía "Edge AI" (Trí tuệ nhân tạo tại biên).
+
+Trong bức tranh chung của thị giác máy tính hiện đại, YOLOv11 đại diện cho xu hướng \textit{module hóa} và \textit{thích ứng}. Bằng cách kết hợp khối C3K2 (tối ưu tính toán) và C2PSA (tối ưu chú ý), công trình này thiết lập một chuẩn mực mới cho các hệ thống giám sát và tự hành. Nó giải quyết bài toán cân bằng hiệu suất mà các thế hệ trước (YOLOv5, v8) mới chỉ giải quyết được một phần: đạt được tốc độ cao nhất với chi phí tài nguyên thấp nhất.

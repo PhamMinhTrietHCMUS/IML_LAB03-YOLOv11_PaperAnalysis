@@ -173,12 +173,12 @@ A comprehensive LaTeX report is available in the `report/` directory, containing
 - Acknowledgements
 - Symbol lists and nomenclature
 - Summary/Abstract
-- Chapter 1: Introduction
-- Chapter 2: Literature review
-- Chapter 3: Methodology
-- Chapter 4: Experimental setup
-- Chapter 5: Results and analysis
-- Chapter 6: Conclusions and future work
+- Chapter 1: Giới thiệu (Introduction)
+- Chapter 2: Các công trình liên quan (Related Works)
+- Chapter 3: Kiến thức nền tảng (Background Knowledge)
+- Chapter 4: Phương pháp nghiên cứu (Research Methodology)
+- Chapter 5: Thực nghiệm và Đánh giá (Experiments and Evaluation)
+- Chapter 6: Kết luận và Định hướng phát triển (Conclusion and Future Work)
 - Bibliography references
 
 The compiled PDF (`main.pdf`) is already included in the repository.
@@ -190,6 +190,7 @@ pdflatex main.tex
 bibtex main
 pdflatex main.tex
 pdflatex main.tex  # Run twice more for references
+```
 
 ## Pre-trained Models
 

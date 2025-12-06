@@ -11,9 +11,9 @@ This project compares three YOLO models (YOLOv8, YOLOv9, and YOLOv11) for detect
   - Test: 329 images (10%)
 - **Classes**: 3 (Paper, Rock, Scissors)
 
-## 🚀 Quick Start (Windows)
+## Quick Start (Windows)
 
-### 🚀 Easy Setup with Batch Files
+### Easy Setup with Batch Files
 
 **For Windows users, we provide convenient batch scripts:**
 
@@ -28,13 +28,14 @@ This will automatically:
 - Install all dependencies
 - Verify installation
 
-#### 1.5. GPU Acceleration (Recommended!) ⚡
+#### 1.5. GPU Acceleration (Optional - Recommended!) 
 If you have NVIDIA GPU, enable GPU for **3x faster performance**:
+- Install CUDA Toolkit from NVIDIA website
+- Install PyTorch with CUDA support:
 ```cmd
-setup_gpu.bat
+pip install torch torchvision --index-url https://download.pytorch.org/whl/cu130
 ```
 This will:
-- Install CUDA-enabled PyTorch
 - Enable GPU acceleration
 - Boost FPS from 8-15 to 25-35!
 
@@ -80,21 +81,55 @@ pip install torch torchvision --index-url https://download.pytorch.org/whl/cu130
 ## Project Structure
 
 ```
-NMMH_LAB3/
+IML_LAB03-YOLOv11_PaperAnalysis/
 ├── data/
-│   ├── train/           # Training dataset (2,196 images)
-│   ├── validation/      # Validation dataset (604 images)
-│   └── test/            # Test dataset (329 images)
+│   ├── train/              # Training dataset (2,196 images)
+│   │   ├── images/         # Training images
+│   │   ├── labels/         # YOLO format annotations
+│   │   └── classes.txt     # Class names
+│   └── validation/         # Validation dataset (604 images)
+│       ├── images/         # Validation images
+│       ├── labels/         # YOLO format annotations
+│       └── classes.txt     # Class names
+├── rock-paper-scissors.v1i.yolov11/
+│   ├── test/               # Test dataset (329 images)
+│   │   ├── images/         # Test images
+│   │   ├── labels/         # YOLO format annotations
+│   │   └── classes.txt     # Class names
+│   ├── README.dataset.txt  # Dataset information
+│   └── README.roboflow.txt # Roboflow metadata
 ├── runs/
 │   └── detect/
-│       ├── yolov8/      # YOLOv8s training results
-│       ├── yolov9/      # YOLOv9s training results
-│       └── yolov11/     # YOLOv11s training results
-├── evaluation_results/  # Model evaluation results and visualizations
-├── report/              # LaTeX report files
-├── data.yaml            # Dataset configuration
-├── evaluate_models.py   # Model evaluation script
-└── train_val_split.py   # Dataset splitting script
+│       ├── yolov8/         # YOLOv8s training results
+│       ├── yolov9/         # YOLOv9s training results
+│       └── yolov11/        # YOLOv11s training results
+├── evaluation_results/
+│   ├── YOLOv8/             # YOLOv8 evaluation metrics
+│   │   └── predictions.json
+│   ├── YOLOv9/             # YOLOv9 evaluation metrics
+│   │   └── predictions.json
+│   ├── YOLOv11/            # YOLOv11 evaluation metrics
+│   │   └── predictions.json
+│   └── comparison_results.csv  # Model comparison metrics
+├── report/                 # Research report
+│   └── main.pdf            # Compiled PDF report
+├── templates/
+│   └── index.html          # Flask web application UI
+├── app.py                  # Flask web application (standard version)
+├── app_optimized.py        # Flask web application (optimized with tracking)
+├── yolo_detect.py          # Command-line detection script
+├── evaluate_models.py      # Model evaluation and comparison script
+├── train_val_split.py      # Dataset splitting utility
+├── data.yaml               # YOLO dataset configuration
+├── requirements.txt        # Python dependencies
+├── install.bat             # Windows installer script
+├── run.bat                 # Windows application launcher
+├── evaluate.bat            # Windows evaluation launcher
+├── yolov8s.pt              # YOLOv8s pre-trained weights
+├── yolov9s.pt              # YOLOv9s pre-trained weights
+├── yolov11s.pt             # YOLOv11s pre-trained weights
+├── LICENSE                 # Project license
+└── README.md               # This file
 ```
 
 ## Training
@@ -135,22 +170,35 @@ The evaluation results show:
 ## Report
 
 A comprehensive LaTeX report is available in the `report/` directory, containing:
-- Literature review
-- Methodology
-- Experimental setup
-- Results and analysis
-- Conclusions and future work
+- Acknowledgements
+- Symbol lists and nomenclature
+- Summary/Abstract
+- Chapter 1: Introduction
+- Chapter 2: Literature review
+- Chapter 3: Methodology
+- Chapter 4: Experimental setup
+- Chapter 5: Results and analysis
+- Chapter 6: Conclusions and future work
+- Bibliography references
 
-Compile the report:
+The compiled PDF (`main.pdf`) is already included in the repository.
+
+To recompile the report:
 ```bash
 cd report
 pdflatex main.tex
-pdflatex main.tex  # Run twice for references
-```
+bibtex main
+pdflatex main.tex
+pdflatex main.tex  # Run twice more for references
 
 ## Pre-trained Models
 
-The trained models are available in:
+Pre-trained YOLO weights are included in the root directory:
+- `yolov8s.pt` - YOLOv8s base weights
+- `yolov9s.pt` - YOLOv9s base weights
+- `yolov11s.pt` - YOLOv11s base weights
+
+The fine-tuned models for Rock-Paper-Scissors detection are available in:
 - `runs/detect/yolov8/weights/best.pt`
 - `runs/detect/yolov9/weights/best.pt`
 - `runs/detect/yolov11/weights/best.pt`
@@ -169,7 +217,11 @@ Simply double-click `run.bat` - it will handle everything automatically!
 
 **Manual Start:**
 ```bash
+# Standard version
 python app.py
+
+# Or optimized version with smooth tracking
+python app_optimized.py
 ```
 
 The server will start on `http://localhost:5000`
@@ -183,20 +235,24 @@ The server will start on `http://localhost:5000`
 
 **Features:**
 - Real-time object detection via webcam
+- Two versions available:
+  - `app.py` - Standard version with basic detection
+  - `app_optimized.py` - Enhanced version with smooth tracking and performance optimizations
 - Switch between 3 YOLO models (v8, v9, v11)
 - Live FPS monitoring
 - Object detection statistics
 - Responsive web UI with modern design
+- Automatic camera testing and error handling
 
 **Performance:**
-- **CPU Mode:** 8-15 FPS (optimized settings applied automatically)
+- **CPU Mode:** 8-15 FPS (optimized settings applied automatically in `app_optimized.py`)
 - **GPU Mode:** 25-35 FPS (requires CUDA-enabled PyTorch)
-- **See `FPS_OPTIMIZATION.md` for detailed performance guide**
+- Both versions automatically detect and utilize GPU if available
 
 **Troubleshooting:**
 - If webcam is not detected, check camera permissions in your OS
 - If models fail to load, verify model weights exist in `runs/detect/{model}/weights/best.pt`
-- For GPU acceleration (3-5x faster), see `FPS_OPTIMIZATION.md` for CUDA installation
+- For GPU acceleration (3-5x faster), install CUDA Toolkit and PyTorch with CUDA support
 
 ### Command Line Interface
 
@@ -209,48 +265,6 @@ python yolo_detect.py --model runs/detect/yolov11/weights/best.pt --source usb0
 # With recording
 python yolo_detect.py --model runs/detect/yolov11/weights/best.pt --source usb0 --resolution 640x480 --record
 ```
-
-## Recent Improvements
-
-### Ease of Use (New! 🎉)
-- ✅ **Windows Batch Scripts** for one-click setup and launch
-  - `install.bat` - Auto-installs all dependencies
-  - `run.bat` - Starts app and opens browser automatically
-  - `evaluate.bat` - Runs model evaluation with one click
-- ✅ Quick start guide (`QUICKSTART.md`)
-- ✅ Batch scripts documentation (`BATCH_SCRIPTS.md`)
-
-### Code Quality Enhancements
-- ✅ Enhanced error handling in `app.py` for robust camera and model initialization
-- ✅ Improved error messages with troubleshooting tips
-- ✅ Added graceful error recovery in frame generation loop
-- ✅ Better logging for debugging
-
-### Documentation
-- ✅ Comprehensive application demo instructions
-- ✅ Video recording guide (`VIDEO_DEMO_GUIDE.md`)
-- ✅ Submission checklist (`SUBMISSION_CHECKLIST.md`)
-- ✅ Project summary (`PROJECT_SUMMARY.md`)
-
-### Application Features
-- ✅ Real-time FPS monitoring
-- ✅ Object counting display
-- ✅ Smooth model switching between YOLOv8/9/11
-- ✅ Responsive web interface
-- ✅ Camera testing before streaming
-
-## Project Status
-
-| Component | Status | Notes |
-|-----------|--------|-------|
-| Paper Analysis | ✅ Complete | 18-page report |
-| Model Training | ✅ Complete | 3 models, 100 epochs |
-| Evaluation | ✅ Complete | Full metrics + visualization |
-| Web Application | ✅ Complete | Functional with error handling |
-| Documentation | ✅ Complete | Comprehensive guides |
-| Video Demo | ⚠️ Pending | See VIDEO_DEMO_GUIDE.md |
-
-**Overall Completion**: 98% (Only video demo remaining)
 
 ## License
 

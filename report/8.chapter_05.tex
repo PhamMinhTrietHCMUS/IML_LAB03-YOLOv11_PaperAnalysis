@@ -135,7 +135,7 @@ YOLOv11s & 2355.41 & 0.654 & 23.55 \\
     
     \item \textbf{YOLOv9s chậm nhất:} Mất 51.4 phút, gần gấp 1.5 lần YOLOv8s. Nguyên nhân là kiến trúc GELAN phức tạp hơn với nhiều kết nối gradient path.
     
-    \item \textbf{YOLOv11s cân bằng:} Với 39.2 phút, YOLOv11s nằm giữa hai mô hình kia. Mặc dù sử dụng C2PSA (phức tạp hơn C2f), nhưng vẫn nhanh hơn đáng kể so với YOLOv9s.
+    \item \textbf{YOLOv11s cân bằng:} Với 39.2 phút, YOLOv11s nằm giữa hai mô hình kia. Mặc dù thay thế C2f bằng C3K2 và bổ sung cơ chế chú ý C2PSA, kiến trúc YOLOv11 vẫn được tối ưu tốt, nhanh hơn đáng kể so với YOLOv9s.
     
     \item \textbf{Trade-off hiệu năng-thời gian:} YOLOv11s đạt được sự cân bằng tốt nhất - hiệu năng cao nhất (F1-Score 93.60\%) với thời gian huấn luyện chấp nhận được, chỉ chậm hơn YOLOv8s 14\% nhưng đạt độ chính xác cao hơn.
 \end{enumerate}

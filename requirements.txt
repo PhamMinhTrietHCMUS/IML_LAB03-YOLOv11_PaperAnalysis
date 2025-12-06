@@ -4,3 +4,6 @@ torchvision
 pandas
 matplotlib
 seaborn
+opencv-python
+numpy
+flask

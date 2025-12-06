@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YOLO Real-time Detection</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        h1 {
+            color: #333;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 20px;
+            align-items: start;
+        }
+
+        .control-panel {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .video-container {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .section-title {
+            font-size: 1.3em;
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+
+        .model-selector {
+            margin-bottom: 25px;
+        }
+
+        .model-option {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            margin-bottom: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .model-option:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+        }
+
+        .model-option.selected {
+            border-color: #667eea;
+            background: linear-gradient(135deg, #667eea15, #764ba215);
+        }
+
+        .model-option input[type="radio"] {
+            width: 20px;
+            height: 20px;
+            margin-right: 12px;
+            cursor: pointer;
+        }
+
+        .model-info {
+            flex: 1;
+        }
+
+        .model-name {
+            font-weight: 600;
+            color: #333;
+            font-size: 1.1em;
+        }
+
+        .model-desc {
+            font-size: 0.85em;
+            color: #666;
+            margin-top: 4px;
+        }
+
+        .camera-selector {
+            margin-bottom: 25px;
+        }
+
+        .camera-selector label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .camera-selector select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+            cursor: pointer;
+            background: white;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        button {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-start {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-start:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-stop {
+            background: linear-gradient(135deg, #f093fb, #f5576c);
+            color: white;
+        }
+
+        .btn-stop:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(245, 87, 108, 0.4);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .status-panel {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .status-item:last-child {
+            border-bottom: none;
+        }
+
+        .status-label {
+            color: #666;
+            font-weight: 500;
+        }
+
+        .status-value {
+            color: #333;
+            font-weight: 600;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .status-running {
+            background: #4caf50;
+            animation: pulse 2s infinite;
+        }
+
+        .status-stopped {
+            background: #f44336;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .video-feed {
+            width: 100%;
+            max-width: 800px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            background: #f0f0f0;
+            min-height: 480px;
+        }
+
+        .placeholder {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 480px;
+            color: #999;
+        }
+
+        .placeholder-icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+        }
+
+        .info-panel {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            border-left: 4px solid #2196f3;
+        }
+
+        .info-title {
+            font-weight: 600;
+            color: #1976d2;
+            margin-bottom: 8px;
+        }
+
+        .info-list {
+            list-style: none;
+            color: #555;
+            font-size: 0.9em;
+        }
+
+        .info-list li {
+            padding: 4px 0;
+        }
+
+        .info-list li:before {
+            content: "▸ ";
+            color: #2196f3;
+            font-weight: bold;
+        }
+
+        @media (max-width: 968px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 YOLO Real-time Detection</h1>
+            <p class="subtitle">Rock-Paper-Scissors Hand Gesture Recognition</p>
+        </div>
+
+        <div class="main-content">
+            <div class="control-panel">
+                <h2 class="section-title">⚙️ Control Panel</h2>
+
+                <div class="model-selector">
+                    <h3 style="margin-bottom: 15px; color: #555;">Select Model:</h3>
+                    {% for model in models %}
+                    <div class="model-option" onclick="selectModel('{{ model }}')">
+                        <input type="radio" name="model" value="{{ model }}" 
+                               {% if model == 'YOLOv11' %}checked{% endif %} 
+                               id="{{ model }}">
+                        <div class="model-info">
+                            <div class="model-name">{{ model }}</div>
+                            <div class="model-desc">
+                                {% if model == 'YOLOv8' %}Best precision (96.12%)
+                                {% elif model == 'YOLOv9' %}Balanced performance
+                                {% elif model == 'YOLOv11' %}Best F1-score (93.60%)
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <div class="camera-selector">
+                    <label for="camera">📹 Camera Source:</label>
+                    <select id="camera">
+                        <option value="0">USB Camera 0 (Default)</option>
+                        <option value="1">USB Camera 1</option>
+                        <option value="2">USB Camera 2</option>
+                    </select>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn-start" onclick="startDetection()" id="startBtn">
+                        ▶️ Start
+                    </button>
+                    <button class="btn-stop" onclick="stopDetection()" id="stopBtn" disabled>
+                        ⏹️ Stop
+                    </button>
+                </div>
+
+                <div class="status-panel">
+                    <div class="status-item">
+                        <span class="status-label">Status:</span>
+                        <span class="status-value">
+                            <span class="status-indicator status-stopped" id="statusIndicator"></span>
+                            <span id="statusText">Stopped</span>
+                        </span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">Active Model:</span>
+                        <span class="status-value" id="activeModel">YOLOv11</span>
+                    </div>
+                </div>
+
+                <div class="info-panel">
+                    <div class="info-title">📝 Instructions:</div>
+                    <ul class="info-list">
+                        <li>Select a YOLO model version</li>
+                        <li>Choose your camera source</li>
+                        <li>Click "Start" to begin detection</li>
+                        <li>Show hand gestures to camera</li>
+                        <li>Click "Stop" to end detection</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="video-container">
+                <h2 class="section-title">📹 Live Detection Feed</h2>
+                <div id="videoPlaceholder" class="placeholder">
+                    <div class="placeholder-icon">📷</div>
+                    <p>Click "Start" to begin real-time detection</p>
+                </div>
+                <img id="videoFeed" class="video-feed" style="display: none;" src="" alt="Video Feed">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let isRunning = false;
+        let selectedModel = 'YOLOv11';
+
+        function selectModel(model) {
+            selectedModel = model;
+            document.getElementById(model).checked = true;
+            
+            // Update visual selection
+            document.querySelectorAll('.model-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+            event.currentTarget.classList.add('selected');
+        }
+
+        async function startDetection() {
+            const cameraId = document.getElementById('camera').value;
+            
+            console.log('Starting detection with model:', selectedModel, 'camera:', cameraId);
+            
+            try {
+                const response = await fetch('/start', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        model: selectedModel,
+                        camera: parseInt(cameraId)
+                    })
+                });
+
+                const data = await response.json();
+                console.log('Start response:', data);
+                
+                if (data.status === 'success') {
+                    isRunning = true;
+                    updateUI();
+                    
+                    // Wait a bit for camera to initialize
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    
+                    // Show video feed
+                    document.getElementById('videoPlaceholder').style.display = 'none';
+                    const videoFeed = document.getElementById('videoFeed');
+                    videoFeed.style.display = 'block';
+                    videoFeed.src = '/video_feed?t=' + new Date().getTime();
+                    
+                    console.log('Video feed started');
+                } else {
+                    alert('Error: ' + data.message);
+                    console.error('Start failed:', data.message);
+                }
+            } catch (error) {
+                alert('Failed to start detection: ' + error);
+                console.error('Start error:', error);
+            }
+        }
+
+        async function stopDetection() {
+            console.log('Stopping detection...');
+            
+            try {
+                const response = await fetch('/stop', {
+                    method: 'POST',
+                });
+
+                const data = await response.json();
+                console.log('Stop response:', data);
+                
+                if (data.status === 'success') {
+                    isRunning = false;
+                    updateUI();
+                    
+                    // Hide video feed
+                    const videoFeed = document.getElementById('videoFeed');
+                    videoFeed.src = '';
+                    videoFeed.style.display = 'none';
+                    document.getElementById('videoPlaceholder').style.display = 'flex';
+                    
+                    console.log('Detection stopped');
+                }
+            } catch (error) {
+                alert('Failed to stop detection: ' + error);
+                console.error('Stop error:', error);
+            }
+        }
+
+        function updateUI() {
+            const startBtn = document.getElementById('startBtn');
+            const stopBtn = document.getElementById('stopBtn');
+            const statusText = document.getElementById('statusText');
+            const statusIndicator = document.getElementById('statusIndicator');
+            const activeModel = document.getElementById('activeModel');
+
+            if (isRunning) {
+                startBtn.disabled = true;
+                stopBtn.disabled = false;
+                statusText.textContent = 'Running';
+                statusIndicator.classList.remove('status-stopped');
+                statusIndicator.classList.add('status-running');
+                activeModel.textContent = selectedModel;
+            } else {
+                startBtn.disabled = false;
+                stopBtn.disabled = true;
+                statusText.textContent = 'Stopped';
+                statusIndicator.classList.remove('status-running');
+                statusIndicator.classList.add('status-stopped');
+            }
+        }
+
+        // Initialize selected model
+        document.addEventListener('DOMContentLoaded', function() {
+            const yolov11Option = document.querySelector('.model-option input[value="YOLOv11"]').parentElement;
+            yolov11Option.classList.add('selected');
+        });
+    </script>
+</body>
+</html>

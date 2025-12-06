@@ -108,6 +108,24 @@ The trained models are available in:
 - `runs/detect/yolov9/weights/best.pt`
 - `runs/detect/yolov11/weights/best.pt`
 
+## Demo Application
+
+### Web Application (Recommended)
+Start the interactive web interface:
+```bash
+python app.py
+```
+Then open http://localhost:5000 to use the app with your webcam.
+
+### Command Line
+```bash
+# YOLOv11 with webcam
+python yolo_detect.py --model runs/detect/yolov11/weights/best.pt --source usb0
+
+# With recording
+python yolo_detect.py --model runs/detect/yolov11/weights/best.pt --source usb0 --resolution 640x480 --record
+```
+
 ## License
 
 This project is for educational purposes.

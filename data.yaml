@@ -1,7 +1,7 @@
-path: D:\Yolo\NMMH_LAB3
-train: data\train\images
-val: data\validation\images
-test: rock-paper-scissors.v1i.yolov11\test\images
+path: .
+train: data/train/images
+val: data/validation/images
+test: rock-paper-scissors.v1i.yolov11/test/images
 
 nc: 3
 names: ['Paper', 'Rock', 'Scissors']

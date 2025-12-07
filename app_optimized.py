@@ -348,22 +348,6 @@ def inference_thread():
             fps_buffer.append(current_fps)
             avg_fps = np.mean(fps_buffer)
             
-            # Draw info overlay
-            info_bg = np.zeros((120, 300, 3), dtype=np.uint8)
-            info_bg[:] = (40, 40, 40)
-            cv2.putText(info_bg, f'Model: {model_name}', (10, 30),
-                       cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 255), 2)
-            cv2.putText(info_bg, f'FPS: {avg_fps:.1f}', (10, 60),
-                       cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 255), 2)
-            cv2.putText(info_bg, f'Objects: {obj_count}', (10, 90),
-                       cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 255), 2)
-            
-            # Overlay info on frame
-            alpha = 0.7
-            frame[0:120, 0:300] = cv2.addWeighted(
-                frame[0:120, 0:300], 1-alpha, info_bg, alpha, 0
-            )
-            
             # Update global frame (thread-safe)
             with frame_lock:
                 output_frame = frame.copy()

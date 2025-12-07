@@ -75,7 +75,7 @@ timeout /t 3 /nobreak >nul
 start http://localhost:5000
 echo.
 
-python app.py
+python app_optimized.py
 
 REM If we reach here, the app has stopped
 echo.

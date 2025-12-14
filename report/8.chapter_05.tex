@@ -45,6 +45,24 @@ Câu lệnh huấn luyện mẫu cho YOLOv11 được thực hiện như sau:
 \begin{verbatim}
 yolo detect train data=data.yaml model=yolo11s.pt epochs=100 imgsz=640
 \end{verbatim}
+\subsection{Thời gian Huấn luyện}
+
+Bảng \ref{tab:training_time} so sánh tổng thời gian huấn luyện và thời gian trung bình mỗi epoch của ba mô hình YOLO:
+
+\begin{table}[H]
+\centering
+\caption{So sánh thời gian huấn luyện (100 epochs)}
+\label{tab:training_time}
+\begin{tabular}{lccc}
+\hline
+\textbf{Mô hình} & \textbf{Tổng thời gian (giây)} & \textbf{Tổng thời gian (giờ)} & \textbf{TB/epoch (giây)} \\
+\hline
+YOLOv8s  & 2066.24 & 0.574 & 20.66 \\
+YOLOv9s  & 3085.47 & 0.857 & 30.85 \\
+YOLOv11s & 2355.41 & 0.654 & 23.55 \\
+\hline
+\end{tabular}
+\end{table}
 
 \section{So sánh và Đánh giá}
 Nghiên cứu sẽ thực hiện so sánh đối chứng giữa ba thế hệ YOLO gần nhất để làm rõ sự cải tiến của kiến trúc YOLOv11.
@@ -91,54 +109,153 @@ YOLOv11s & 0.9481 & \textbf{0.9241} & \textbf{0.9548} & 0.8075 & \textbf{0.9360}
 \end{tabular}
 \end{table}
 
-\subsection{Phân tích Kết quả}
 
-\begin{enumerate}
-    \item \textbf{Về độ chính xác (Precision):} 
-    YOLOv8s đạt Precision cao nhất (96.12\%), cao hơn YOLOv9s (95.46\%) và YOLOv11s (94.81\%). Điều này cho thấy YOLOv8s có khả năng giảm thiểu False Positives tốt hơn trong bộ dữ liệu này.
-    
-    \item \textbf{Về độ phủ (Recall):} 
-    YOLOv11s dẫn đầu với Recall 92.41\%, vượt trội so với YOLOv9s (91.44\%) và YOLOv8s (90.69\%). Cơ chế chú ý C2PSA đã giúp mô hình phát hiện được nhiều đối tượng thực tế hơn (giảm False Negatives).
-    
-    \item \textbf{Về mAP@50:} 
-    YOLOv11s đạt mAP@50 cao nhất (95.48\%), nhỉnh hơn YOLOv8s (95.41\%) và YOLOv9s (94.96\%). Đây là chỉ số quan trọng đánh giá khả năng phát hiện đối tượng tổng thể.
-    
-    \item \textbf{Về mAP@50-95:} 
-    Cả ba mô hình đều đạt kết quả rất gần nhau (~80.8\%), cho thấy độ chính xác định vị (localization) tương đương. YOLOv8s nhỉnh hơn một chút với 80.84\%.
-    
-    \item \textbf{Về F1-Score (Cân bằng tổng thể):} 
-    YOLOv11s đạt F1-Score cao nhất (93.60\%), thể hiện sự cân bằng tốt nhất giữa Precision và Recall. Đây là chỉ số quan trọng nhất để đánh giá hiệu suất tổng thể.
-\end{enumerate}
+\subsection{Đánh giá Quá trình Huấn luyện}
 
-\subsection{Thời gian Huấn luyện}
+Phân tích chi tiết các đường cong loss trong quá trình huấn luyện 100 epochs cho thấy những đặc điểm quan trọng về hành vi hội tụ của từng mô hình.
 
-Bảng \ref{tab:training_time} so sánh tổng thời gian huấn luyện và thời gian trung bình mỗi epoch của ba mô hình YOLO:
+\subsubsection{Phân tích Loss Functions}
+
+Bảng \ref{tab:final_loss} tổng hợp giá trị loss cuối cùng (epoch 100) của ba mô hình:
 
 \begin{table}[H]
 \centering
-\caption{So sánh thời gian huấn luyện (100 epochs)}
-\label{tab:training_time}
-\begin{tabular}{lccc}
+\caption{So sánh giá trị Loss tại epoch 100}
+\label{tab:final_loss}
+\begin{tabular}{lccc|ccc}
 \hline
-\textbf{Mô hình} & \textbf{Tổng thời gian (giây)} & \textbf{Tổng thời gian (giờ)} & \textbf{TB/epoch (giây)} \\
+\textbf{Mô hình} & \multicolumn{3}{c|}{\textbf{Training Loss}} & \multicolumn{3}{c}{\textbf{Validation Loss}} \\
+\cline{2-7}
+ & \textbf{Box} & \textbf{Cls} & \textbf{DFL} & \textbf{Box} & \textbf{Cls} & \textbf{DFL} \\
 \hline
-YOLOv8s  & 2066.24 & 0.574 & 20.66 \\
-YOLOv9s  & 3085.47 & 0.857 & 30.85 \\
-YOLOv11s & 2355.41 & 0.654 & 23.55 \\
+YOLOv8s  & \textbf{0.407} & \textbf{0.231} & \textbf{0.858} & \textbf{0.847} & 0.468 & \textbf{1.126} \\
+YOLOv9s  & 0.460 & 0.233 & 0.980 & 0.820 & \textbf{0.417} & 1.363 \\
+YOLOv11s & 0.458 & 0.255 & 0.878 & 0.819 & 0.469 & 1.080 \\
 \hline
 \end{tabular}
 \end{table}
 
-\textbf{Nhận xét về thời gian huấn luyện:}
+\subsubsection{Biểu đồ Quá trình Huấn luyện}
+
+Hình \ref{fig:training_yolov8}, \ref{fig:training_yolov9}, và \ref{fig:training_yolov11} trình bày chi tiết quá trình huấn luyện của từng mô hình:
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{../runs/detect/yolov8/results.png}
+    \caption{Quá trình huấn luyện YOLOv8s qua 100 epochs}
+    \label{fig:training_yolov8}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{../runs/detect/yolov9/results.png}
+    \caption{Quá trình huấn luyện YOLOv9s qua 100 epochs}
+    \label{fig:training_yolov9}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{../runs/detect/yolov11/results.png}
+    \caption{Quá trình huấn luyện YOLOv11s qua 100 epochs}
+    \label{fig:training_yolov11}
+\end{figure}
+
+\subsubsection{Nhận xét Chi tiết}
+
+\textbf{1. Box Loss (Localization Loss):}
+
+Box Loss đo lường độ chính xác của việc định vị bounding box. Phân tích cho thấy:
+
+\begin{itemize}
+    \item \textbf{YOLOv8s:} Đạt train/box\_loss thấp nhất (0.407), giảm từ 1.28 xuống 0.41 (-68\%). Validation loss ổn định ở 0.847.
+    \item \textbf{YOLOv9s:} Train/box\_loss = 0.460, giảm từ 1.25 xuống 0.46 (-63\%). Tuy nhiên, validation loss vẫn đang có xu hướng giảm (0.820).
+    \item \textbf{YOLOv11s:} Train/box\_loss = 0.458, giảm từ 1.30 xuống 0.46 (-65\%). \textbf{Đáng chú ý, đường cong train/box\_loss của YOLOv11s vẫn có xu hướng giảm đều đặn tại epoch 100}, cho thấy mô hình chưa hoàn toàn hội tụ và có thể cải thiện thêm nếu tăng số epochs.
+\end{itemize}
+
+\textbf{2. Classification Loss:}
+
+Classification Loss đánh giá khả năng phân loại đối tượng:
+
+\begin{itemize}
+    \item \textbf{YOLOv8s:} Đạt train/cls\_loss thấp nhất (0.231), hội tụ nhanh và ổn định từ epoch 80.
+    \item \textbf{YOLOv9s:} Train/cls\_loss = 0.233, gần tương đương YOLOv8s. Val/cls\_loss thấp nhất (0.417).
+    \item \textbf{YOLOv11s:} Train/cls\_loss cao hơn một chút (0.255), nhưng vẫn trong khoảng chấp nhận được.
+\end{itemize}
+
+\textbf{3. Distribution Focal Loss (DFL):}
+
+DFL Loss liên quan đến việc tinh chỉnh vị trí bounding box:
+
+\begin{itemize}
+    \item \textbf{YOLOv8s:} Đạt train/dfl\_loss thấp nhất (0.858) và val/dfl\_loss tốt nhất (1.126).
+    \item \textbf{YOLOv9s:} DFL loss cao nhất ở cả train (0.980) và validation (1.363), phản ánh kiến trúc GELAN xử lý localization khác biệt.
+    \item \textbf{YOLOv11s:} DFL loss ở mức trung bình (0.878 train, 1.080 val).
+\end{itemize}
+
+\subsubsection{Đánh giá Khả năng Hội tụ}
+
+\textbf{Phân tích xu hướng hội tụ:}
+
 \begin{enumerate}
-    \item \textbf{YOLOv8s nhanh nhất:} Chỉ mất 34.4 phút để hoàn thành 100 epochs, nhanh hơn YOLOv11s 14\% và nhanh hơn YOLOv9s tới 49\%. Điều này cho thấy kiến trúc C2f của YOLOv8 được tối ưu tốt về mặt tính toán.
+    \item \textbf{YOLOv8s - Hội tụ tốt:} Các đường loss đều phẳng (plateau) từ epoch 85-100, cho thấy mô hình đã hội tụ gần như hoàn toàn. Training thêm epochs sẽ không cải thiện đáng kể.
     
-    \item \textbf{YOLOv9s chậm nhất:} Mất 51.4 phút, gần gấp 1.5 lần YOLOv8s. Nguyên nhân là kiến trúc GELAN phức tạp hơn với nhiều kết nối gradient path.
+    \item \textbf{YOLOv9s - Hội tụ chậm:} Do kiến trúc phức tạp hơn với GELAN và PGI, YOLOv9s cần nhiều epochs hơn để hội tụ. Validation loss vẫn có xu hướng giảm nhẹ, đặc biệt là val/cls\_loss.
     
-    \item \textbf{YOLOv11s cân bằng:} Với 39.2 phút, YOLOv11s nằm giữa hai mô hình kia. Mặc dù thay thế C2f bằng C3K2 và bổ sung cơ chế chú ý C2PSA, kiến trúc YOLOv11 vẫn được tối ưu tốt, nhanh hơn đáng kể so với YOLOv9s.
-    
-    \item \textbf{Trade-off hiệu năng-thời gian:} YOLOv11s đạt được sự cân bằng tốt nhất - hiệu năng cao nhất (F1-Score 93.60\%) với thời gian huấn luyện chấp nhận được, chỉ chậm hơn YOLOv8s 14\% nhưng đạt độ chính xác cao hơn.
+    \item \textbf{YOLOv11s - Tiềm năng cải thiện:} 
+    \begin{itemize}
+        \item Train/box\_loss vẫn đang giảm với gradient đáng kể tại epoch 100 (từ 0.48 ở epoch 95 xuống 0.46 ở epoch 100).
+        \item Metrics (mAP50, mAP50-95) vẫn có dao động nhẹ, chưa hoàn toàn ổn định.
+        \item \textbf{Khuyến nghị:} Có thể tăng lên 120-150 epochs để đạt hiệu suất tối ưu.
+    \end{itemize}
 \end{enumerate}
+
+\textbf{Hiện tượng quan sát được:}
+
+\begin{itemize}
+    \item \textbf{Learning Rate Decay:} Cả ba mô hình đều sử dụng cosine annealing scheduler, với learning rate giảm từ ~0.0014 xuống ~0.00003 tại epoch 100. Điều này giải thích sự ổn định của các metrics ở giai đoạn cuối.
+    
+    \item \textbf{Không có Overfitting:} Gap giữa train loss và validation loss duy trì ổn định, không có dấu hiệu validation loss tăng trong khi train loss giảm. Điều này chứng tỏ bộ dữ liệu và augmentation phù hợp.
+    
+    \item \textbf{Early Stopping không kích hoạt:} Với patience mặc định, không có mô hình nào dừng sớm, cho thấy tất cả đều tiếp tục cải thiện (dù chậm) trong suốt 100 epochs.
+\end{itemize}
+
+\begin{table}[H]
+\centering
+\caption{Đánh giá mức độ hội tụ của các mô hình}
+\label{tab:convergence}
+\begin{tabular}{lccc}
+\hline
+\textbf{Tiêu chí} & \textbf{YOLOv8s} & \textbf{YOLOv9s} & \textbf{YOLOv11s} \\
+\hline
+Mức độ hội tụ & Hoàn toàn & Gần hoàn toàn & Chưa hoàn toàn \\
+Xu hướng Box Loss & Phẳng & Giảm nhẹ & Còn giảm \\
+Tiềm năng cải thiện & Thấp & Trung bình & Cao \\
+Epochs khuyến nghị & 100 (đủ) & 110-120 & 120-150 \\
+\hline
+\end{tabular}
+\end{table}
+
+\textbf{Kết luận:} Mặc dù YOLOv11s đạt F1-Score và mAP@50 cao nhất trong thực nghiệm này, việc train dừng ở epoch 100 có thể chưa khai thác hết tiềm năng của mô hình. Đường cong box\_loss vẫn đang giảm cho thấy cơ chế chú ý C2PSA cần nhiều thời gian hơn để học các đặc trưng phức tạp. Trong các ứng dụng thực tế, việc tăng số epochs cho YOLOv11 có thể mang lại cải thiện đáng kể về độ chính xác định vị (mAP@50-95).
+
+\subsection{Phân tích Kết quả}
+
+\begin{enumerate}
+    \item \textbf{Về độ chính xác (Precision):}
+    YOLOv8s đạt Precision cao nhất (96.12\%), cao hơn YOLOv9s (95.46\%) và YOLOv11s (94.81\%). Điều này cho thấy YOLOv8s có khả năng giảm thiểu False Positives tốt hơn trong bộ dữ liệu này.
+
+    \item \textbf{Về độ phủ (Recall):}
+    YOLOv11s dẫn đầu với Recall 92.41\%, vượt trội so với YOLOv9s (91.44\%) và YOLOv8s (90.69\%). Cơ chế chú ý C2PSA đã giúp mô hình phát hiện được nhiều đối tượng thực tế hơn (giảm False Negatives).
+
+    \item \textbf{Về mAP@50:}
+    YOLOv11s đạt mAP@50 cao nhất (95.48\%), nhỉnh hơn YOLOv8s (95.41\%) và YOLOv9s (94.96\%). Đây là chỉ số quan trọng đánh giá khả năng phát hiện đối tượng tổng thể.
+
+    \item \textbf{Về mAP@50-95:}
+    Cả ba mô hình đều đạt kết quả rất gần nhau (~80.8\%), cho thấy độ chính xác định vị (localization) tương đương. YOLOv8s nhỉnh hơn một chút với 80.84\%.
+
+    \item \textbf{Về F1-Score (Cân bằng tổng thể):}
+    YOLOv11s đạt F1-Score cao nhất (93.60\%), thể hiện sự cân bằng tốt nhất giữa Precision và Recall. Đây là chỉ số quan trọng nhất để đánh giá hiệu suất tổng thể.
+\end{enumerate}
+
 
 \subsection{Kết quả Chi tiết theo Lớp}
 
@@ -174,14 +291,22 @@ Scissors & 67 & 69 & 0.970 & 0.971 \\
 
 \subsubsection{Biểu đồ So sánh Tổng quan}
 
-Hình \ref{fig:model_comparison} và \ref{fig:comparison_table} trình bày kết quả so sánh trực quan giữa ba mô hình:
+Hình \ref{fig:model_comparison} và \ref{fig:comparison_table} trình bày kết quả so sánh trực quan giữa ba mô hình. Lưu ý rằng trục Y được offset từ 60\% để hiển thị rõ hơn sự khác biệt giữa các giá trị trong khoảng 90-99\%.
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=\textwidth]{../evaluation_results/model_comparison.png}
-    \caption{So sánh hiệu suất các mô hình YOLO trên test set}
+    \caption{So sánh hiệu suất các mô hình YOLO trên test set (Y-axis từ 60\%)}
     \label{fig:model_comparison}
 \end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{../evaluation_results/radar_charts_combined.png}
+    \caption{Radar chart riêng cho  các model}
+    \label{fig:model_radar_charts}
+\end{figure}
+
 
 \begin{figure}[H]
     \centering
@@ -190,10 +315,19 @@ Hình \ref{fig:model_comparison} và \ref{fig:comparison_table} trình bày kế
     \label{fig:comparison_table}
 \end{figure}
 
-Biểu đồ cho thấy rõ ràng sự cân bằng vượt trội của YOLOv11s trong radar chart, với điểm mạnh về Recall và mAP@50.
 
-\subsubsection{Ma trận Nhầm lẫn (Confusion Matrix)}
 
+Kết quả thực nghiệm cho thấy cả ba mô hình đều đạt hiệu suất rất cao (>93\%) trên bộ dữ liệu Rock-Paper-Scissors, với sự khác biệt nhỏ giữa các phiên bản.
+
+\textbf{YOLOv11s} thể hiện sự cân bằng tốt nhất với F1-Score cao nhất (0.9360) và mAP@50 tốt nhất (0.9548), đồng thời dẫn đầu về Recall (0.9241) - cho thấy khả năng phát hiện đối tượng toàn diện hơn nhờ cơ chế chú ý C2PSA. Tuy nhiên, mô hình này có Precision thấp nhất (0.9481), nghĩa là tỷ lệ dự đoán dương tính giả (False Positives) cao hơn một chút.
+
+\textbf{YOLOv8s} nổi bật với Precision cao nhất (0.9612) và mAP@50-95 tốt nhất (0.8084), thể hiện độ chính xác định vị (localization) vượt trội. Đây là lựa chọn phù hợp khi ưu tiên giảm thiểu False Positives.
+
+\textbf{YOLOv9s} đạt kết quả trung gian ở hầu hết các chỉ số, không nổi trội ở bất kỳ chỉ số nào nhưng cũng không kém nhất. Kiến trúc GELAN và PGI của YOLOv9 chưa thể hiện lợi thế rõ rệt trên bộ dữ liệu này.
+
+\textbf{Kết luận:} YOLOv11s là lựa chọn tối ưu nhất cho bài toán này nhờ sự cân bằng giữa Precision và Recall, đặc biệt phù hợp với các ứng dụng yêu cầu phát hiện toàn diện. Tuy nhiên, nếu ưu tiên độ chính xác tuyệt đối và giảm False Positives, YOLOv8s vẫn là lựa chọn đáng cân nhắc.
+
+\subsubsection{Confusion Matrix}
 Ma trận nhầm lẫn của YOLOv11s (Hình \ref{fig:confusion_yolov11}) cho thấy mô hình phân loại rất chính xác giữa các cử chỉ:
 
 \begin{figure}[H]
@@ -203,7 +337,36 @@ Ma trận nhầm lẫn của YOLOv11s (Hình \ref{fig:confusion_yolov11}) cho th
     \label{fig:confusion_yolov11}
 \end{figure}
 
-Ma trận cho thấy độ chính xác cao trên đường chéo chính, với tỷ lệ phân loại đúng >90\% cho tất cả các lớp.
+
+Ma trận nhầm lẫn chuẩn hóa của YOLOv11s (Hình \ref{fig:confusion_yolov11}) tiết lộ những thông tin quan trọng về hành vi của mô hình:
+
+\textbf{Hiệu suất phân loại theo lớp:}
+\begin{itemize}
+    \item \textbf{Scissors (Kéo):} Đạt độ chính xác cao nhất (97\%), cho thấy đặc trưng hai ngón tay duỗi thẳng rất dễ nhận diện.
+    \item \textbf{Rock (Búa):} Độ chính xác thấp nhất (93\%), phản ánh độ khó trong việc phát hiện cử chỉ này.
+    \item \textbf{Paper (Bao):} Đạt 90\% độ chính xác, ở mức trung bình.
+\end{itemize}
+
+\textbf{Vấn đề nhầm lẫn với Background (quan trọng):}
+
+Một phát hiện đáng chú ý là cử chỉ \textbf{Rock có tỷ lệ nhầm lẫn với background cao nhất (56\%)}, gấp hơn đôi so với Paper (22\%) và Scissors (22\%). Điều này có thể giải thích bởi:
+
+\begin{enumerate}
+    \item \textbf{Đặc trưng ít nổi bật:} Rock là bàn tay nắm chặt, tạo thành khối tròn đặc với ít chi tiết hình học phân biệt (không có ngón tay duỗi ra như Paper hay Scissors).
+    \item \textbf{Khó phân biệt với vùng nền:} Hình dạng tròn, đặc của nắm đấm dễ bị nhầm lẫn với các vật thể tròn hoặc vùng tối trong background.
+    \item \textbf{Diện tích nhỏ hơn:} Khi nắm lại, bàn tay có diện tích bounding box nhỏ hơn, làm giảm số lượng feature được trích xuất.
+\end{enumerate}
+
+\textbf{Nhầm lẫn giữa các lớp:}
+
+Các cử chỉ ít bị nhầm lẫn với nhau (< 5\%), chứng tỏ mô hình phân biệt tốt giữa các hình dạng bàn tay. Tuy nhiên, thách thức chính nằm ở việc \textit{phát hiện sự tồn tại} của đối tượng Rock trong ảnh (detection) hơn là \textit{phân loại sai} (classification).
+
+\textbf{Hướng cải tiến:} Để cải thiện hiệu suất trên lớp Rock, có thể:
+\begin{itemize}
+    \item Tăng cường dữ liệu (augmentation) đặc biệt cho lớp Rock với các background đa dạng.
+    \item Điều chỉnh class weights trong loss function để mô hình chú ý hơn đến lớp khó này.
+    \item Thu thập thêm dữ liệu Rock với các góc chụp và điều kiện ánh sáng khác nhau.
+\end{itemize}
 
 \subsubsection{Đường cong Precision-Recall}
 
@@ -222,9 +385,9 @@ Hình \ref{fig:pr_curves} so sánh đường cong PR của ba mô hình:
         \includegraphics[width=\textwidth]{../evaluation_results/YOLOv9/BoxPR_curve.png}
         \caption{YOLOv9s}
     \end{subfigure}
-    
+
     \vspace{0.5cm}
-    
+
     \begin{subfigure}[b]{0.48\textwidth}
         \centering
         \includegraphics[width=\textwidth]{../evaluation_results/YOLOv11/BoxPR_curve.png}
@@ -234,7 +397,48 @@ Hình \ref{fig:pr_curves} so sánh đường cong PR của ba mô hình:
     \label{fig:pr_curves}
 \end{figure}
 
-Đường cong PR cho thấy YOLOv11s duy trì precision cao ở các mức recall khác nhau, thể hiện tính ổn định của mô hình.
+
+Đường cong Precision-Recall (PR Curve) là công cụ quan trọng để đánh giá khả năng cân bằng giữa độ chính xác và độ phủ của mô hình phát hiện đối tượng. Diện tích dưới đường cong (AUC) chính là chỉ số mAP@50.
+
+\textbf{So sánh hiệu suất tổng quan (mAP@50):}
+\begin{itemize}
+    \item \textbf{YOLOv11s:} 0.955 (cao nhất)
+    \item \textbf{YOLOv8s:} 0.954
+    \item \textbf{YOLOv9s:} 0.950 (thấp nhất)
+\end{itemize}
+
+\textbf{Đặc điểm chung của các đường cong:}
+
+Cả ba mô hình đều thể hiện đường cong PR \textit{lý tưởng} với các đặc điểm:
+\begin{enumerate}
+    \item \textbf{Vùng plateau rộng:} Precision duy trì ở mức gần 1.0 (>0.95) khi Recall tăng từ 0 đến ~0.8-0.9. Điều này chứng tỏ mô hình có khả năng phát hiện nhiều đối tượng mà vẫn giữ độ chính xác cao.
+    \item \textbf{"Đầu gối" xuất hiện muộn:} Precision chỉ bắt đầu giảm mạnh khi Recall > 0.8, cho thấy mô hình có ngưỡng confidence tốt, không tạo ra nhiều False Positives khi cố gắng tăng độ phủ.
+    \item \textbf{Độ nhất quán cao:} Các đường cong của 3 lớp (Paper, Rock, Scissors) gần sát nhau, thể hiện hiệu suất cân bằng giữa các lớp.
+\end{enumerate}
+
+\textbf{Phân tích theo từng lớp:}
+
+\begin{itemize}
+    \item \textbf{Scissors (Kéo):} Dẫn đầu ở YOLOv8s (0.977) và YOLOv11s (0.983), đạt mAP cao nhất trong 3 lớp. Đường cong gần như hoàn hảo phản ánh đặc trưng hai ngón tay duỗi rất dễ nhận diện và ít bị nhầm lẫn.
+
+    \item \textbf{Rock (Búa):} Có sự cải thiện đáng kể từ YOLOv8s (0.948) lên YOLOv9s (0.958) và YOLOv11s (0.956). Tuy nhiên, như đã phân tích trong ma trận nhầm lẫn, Rock vẫn gặp khó khăn với background confusion (56\%). Đường cong PR cao không phản ánh vấn đề này vì PR chỉ đo lường \textit{độ chính xác của các detection được đưa ra}, không đo lường \textit{số lượng đối tượng bị bỏ sót} (False Negatives với background).
+
+    \item \textbf{Paper (Bao):} Kết quả ổn định nhất, dao động từ 0.926-0.942 giữa các mô hình. YOLOv9s đạt kết quả tốt nhất (0.942) cho lớp này.
+\end{itemize}
+
+\textbf{So sánh giữa các mô hình:}
+
+\begin{itemize}
+    \item \textbf{YOLOv11s:} Mặc dù chỉ nhỉnh hơn YOLOv8s 0.001 về mAP@50, nhưng có hiệu suất vượt trội ở lớp Scissors (0.983) - lớp dễ nhất. Đồng thời duy trì Rock ở mức cao (0.956).
+
+    \item \textbf{YOLOv8s:} Cân bằng tốt giữa các lớp, không có lớp nào quá nổi trội hay quá yếu. Scissors (0.977) và Rock (0.948) cho kết quả tốt.
+
+    \item \textbf{YOLOv9s:} Có mAP@50 thấp nhất (0.950), nhưng lại đạt kết quả tốt nhất cho Paper (0.942) và Rock (0.958). Điều này cho thấy YOLOv9 có thể phù hợp hơn với các lớp có đặc trưng ít nổi bật.
+\end{itemize}
+
+\textbf{Kết luận:}
+
+Đường cong PR xuất sắc của cả ba mô hình (AUC > 0.95) xác nhận rằng kiến trúc YOLO rất phù hợp với bài toán nhận diện cử chỉ tay. Sự khác biệt nhỏ giữa các mô hình (<0.5\%) cho thấy cả ba thế hệ đều đã đạt mức độ tối ưu cao. YOLOv11s với mAP@50 cao nhất (0.955) kết hợp với F1-Score tốt nhất (0.936) từ phân tích trước đó, khẳng định vị trí dẫn đầu về hiệu suất tổng thể.
 
 \subsubsection{Kết quả Dự đoán Trên Test Set}
 
@@ -257,4 +461,19 @@ Hình \ref{fig:predictions} minh họa một số kết quả dự đoán của 
     \label{fig:predictions}
 \end{figure}
 
-Các hình ảnh cho thấy mô hình phát hiện chính xác các cử chỉ với confidence score cao (>0.9).
+
+Hình \ref{fig:predictions} minh họa kết quả dự đoán của YOLOv11s trên hai batch ngẫu nhiên từ tập test, cho thấy hiệu suất thực tế của mô hình trong các tình huống đa dạng:
+
+\textbf{Độ tin cậy cao:} Hầu hết các detection đạt confidence score từ 0.8-0.9, phản ánh độ chắc chắn cao của mô hình khi đưa ra dự đoán. Điều này phù hợp với chỉ số Precision >94\% đã đo được.
+
+\textbf{Xử lý đa dạng bối cảnh:} Mô hình hoạt động tốt trên nhiều điều kiện thực tế khác nhau:
+\begin{itemize}
+    \item Môi trường đa dạng: phòng khách, bếp, ngoài trời, hồ bơi
+    \item Điều kiện ánh sáng khác nhau: tự nhiên, nhân tạo, backlight
+    \item Góc chụp và khoảng cách khác nhau
+    \item Nhiều đối tượng (người) trong cùng một khung hình
+\end{itemize}
+
+\textbf{Ứng dụng thực tế:} Các hình ảnh test bao gồm screenshot từ video call, YouTube, và các nguồn video thực tế, chứng minh khả năng triển khai của mô hình trong các ứng dụng tương tác người-máy như điều khiển bằng cử chỉ, game, hoặc giao tiếp không tiếp xúc.
+
+\textbf{Giới hạn quan sát được:} Một số trường hợp có confidence thấp hơn (0.8) thường xuất hiện khi có motion blur, tay bị che khuất một phần, hoặc góc chụp nghiêng. Tuy nhiên, mô hình vẫn đưa ra dự đoán đúng trong hầu hết các trường hợp này.

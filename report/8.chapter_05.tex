@@ -308,12 +308,22 @@ Hình \ref{fig:model_comparison} và \ref{fig:comparison_table} trình bày kế
 \end{figure}
 
 
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.9\textwidth]{../evaluation_results/comparison_table.png}
-    \caption{Bảng so sánh chi tiết (ô màu xanh = giá trị tốt nhất)}
-    \label{fig:comparison_table}
-\end{figure}
+\begin{table}[H]
+\centering
+\caption{Bảng so sánh chi tiết (giá trị in đậm = tốt nhất)}
+\label{tab:detailed_comparison}
+\begin{tabular}{lccc}
+\hline
+\textbf{Metric} & \textbf{YOLOv8} & \textbf{YOLOv9} & \textbf{YOLOv11} \\
+\hline
+Precision (P) & \textbf{0.9612} & 0.9546 & 0.9481 \\
+Recall (R) & 0.9069 & 0.9144 & \textbf{0.9241} \\
+mAP@50 & 0.9541 & 0.9496 & \textbf{0.9548} \\
+mAP@50-95 & \textbf{0.8084} & 0.8078 & 0.8075 \\
+F1-Score & 0.9333 & 0.9340 & \textbf{0.9360} \\
+\hline
+\end{tabular}
+\end{table}
 
 
 
